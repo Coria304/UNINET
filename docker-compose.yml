@@ -1,0 +1,81 @@
+# UniNet Connect — Pila local de desarrollo
+# Levanta: PostgreSQL (con TimescaleDB), Redis, backend FastAPI y frontend Vite.
+
+services:
+  postgres:
+    image: timescale/timescaledb:latest-pg16
+    container_name: uninet-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-uninet}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-uninet_dev}
+      POSTGRES_DB: ${POSTGRES_DB:-uninet}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infra/postgres/init.sql:/docker-entrypoint-initdb.d/00_init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: uninet-redis
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: uninet-backend
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-uninet}:${POSTGRES_PASSWORD:-uninet_dev}@postgres:5432/${POSTGRES_DB:-uninet}
+      REDIS_URL: redis://redis:6379/0
+      ENVIRONMENT: development
+      SECRET_KEY: dev-secret-change-in-prod
+      CORS_ORIGINS: http://localhost:5173
+      BACKEND_RELOAD: ${BACKEND_RELOAD:-true}
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    volumes:
+      - ./backend:/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: uninet-frontend
+    restart: unless-stopped
+    environment:
+      VITE_API_URL: ${VITE_API_URL:-http://localhost:8000/api/v1}
+    ports:
+      - "${FRONTEND_PORT:-5173}:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+    command: npm run dev -- --host 0.0.0.0
+
+volumes:
+  postgres_data:
+  redis_data:

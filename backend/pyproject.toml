@@ -1,0 +1,22 @@
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+extend-exclude = ["alembic/versions"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "N", "S", "C4", "SIM"]
+ignore = ["S101"]  # uso de assert permitido en tests
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S105", "S106"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+addopts = "-ra --strict-markers --cov=app --cov-report=term-missing"
+
+[tool.mypy]
+python_version = "3.12"
+strict = false
+plugins = ["pydantic.mypy"]
+exclude = ["alembic/"]
