@@ -17,22 +17,23 @@ UNINET/
 ├── .github/workflows/      Pipelines CI (lint, test, build)
 ├── docker-compose.yml      Pila local de desarrollo
 ├── .env.example            Variables compartidas
-└── Makefile                Atajos: make up, make migrate, make seed, ...
+├── start.sh                Arranca toda la app (DB + backend + frontend)
+└── stop.sh                 Detiene todo
 ```
 
 ## Requisitos previos
 
-- Docker 24+ y Docker Compose v2
-- (Opcional, para desarrollo fuera de Docker) Python 3.12 y Node 20+
+- Podman 5+ con `podman-compose` (o Docker 24+ con Docker Compose v2)
+- Python 3.12 y Node 20+
 
 ## Puesta en marcha
 
 ```bash
 cp .env.example .env
-make up            # levanta postgres, redis, backend y frontend
-make migrate       # aplica las migraciones Alembic
-make seed          # carga edificios/pisos/aulas/APs de ESCOM
+./start.sh                # levanta DB, backend (uvicorn) y frontend (vite)
 ```
+
+La primera vez crea el venv, instala dependencias backend + frontend y aplica migraciones. Las siguientes corridas son casi instantáneas.
 
 Servicios disponibles:
 
@@ -41,17 +42,22 @@ Servicios disponibles:
 - PostgreSQL: localhost:5432 (user `uninet` / db `uninet`)
 - Redis: localhost:6379
 
-## Comandos útiles
+## Detener todo
 
 ```bash
-make help             # lista todos los atajos
-make logs             # logs en vivo
-make test-backend     # pytest
-make test-frontend    # vitest
-make lint-backend     # ruff
-make lint-frontend    # eslint
-make reset-db         # recrea la BD desde cero (destructivo)
-make shell-db         # psql interactivo
+./stop.sh                 # mata backend + frontend y detiene contenedores
+```
+
+Logs en vivo mientras corre:
+
+```bash
+tail -f .run/logs/backend.log .run/logs/frontend.log
+```
+
+Para usar Docker en vez de Podman:
+
+```bash
+COMPOSE="docker compose" ./start.sh
 ```
 
 ## Estado de Sprint 0 (preparación)

@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 
+import { useLogout } from "@/hooks/useAuth";
 import { useAuthStore } from "@/stores/authStore";
 
 interface Props {
@@ -13,7 +14,7 @@ const NAV = [
 
 function TecnicoLayout({ children }: Props) {
   const usuario = useAuthStore((s) => s.usuario);
-  const logout = useAuthStore((s) => s.logout);
+  const logoutMutation = useLogout();
 
   return (
     <div className="flex min-h-screen">
@@ -33,7 +34,11 @@ function TecnicoLayout({ children }: Props) {
         <div className="mt-6 text-sm">
           <div>{usuario?.nombre_completo}</div>
           <div className="text-slate-300">Personal Técnico</div>
-          <button type="button" onClick={logout} className="mt-3 underline">
+          <button
+            type="button"
+            onClick={() => logoutMutation.mutate()}
+            className="mt-3 underline"
+          >
             Cerrar sesión
           </button>
         </div>

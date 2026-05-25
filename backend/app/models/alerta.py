@@ -7,11 +7,11 @@ from datetime import datetime
 from typing import TYPE_CHECKING
 from uuid import UUID
 
-from sqlalchemy import DateTime, Enum, Float, ForeignKey, String
+from sqlalchemy import DateTime, Float, ForeignKey, String
 from sqlalchemy.dialects.postgresql import UUID as PgUUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.models.base import Base, TimestampsMixin, UUIDPrimaryKeyMixin
+from app.models.base import Base, TimestampsMixin, UUIDPrimaryKeyMixin, pg_enum
 
 if TYPE_CHECKING:
     from app.models.access_point import AccessPoint
@@ -40,9 +40,11 @@ class Alerta(UUIDPrimaryKeyMixin, TimestampsMixin, Base):
         nullable=False,
         index=True,
     )
-    tipo: Mapped[TipoAlerta] = mapped_column(Enum(TipoAlerta, name="tipo_alerta"), nullable=False)
+    tipo: Mapped[TipoAlerta] = mapped_column(
+        pg_enum(TipoAlerta, name="tipo_alerta"), nullable=False
+    )
     estado: Mapped[EstadoAlerta] = mapped_column(
-        Enum(EstadoAlerta, name="estado_alerta"),
+        pg_enum(EstadoAlerta, name="estado_alerta"),
         nullable=False,
         default=EstadoAlerta.ACTIVA,
         index=True,

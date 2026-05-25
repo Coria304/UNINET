@@ -3,7 +3,7 @@
 
 services:
   postgres:
-    image: timescale/timescaledb:latest-pg16
+    image: docker.io/timescale/timescaledb:latest-pg16
     container_name: uninet-postgres
     restart: unless-stopped
     environment:
@@ -14,7 +14,7 @@ services:
       - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./infra/postgres/init.sql:/docker-entrypoint-initdb.d/00_init.sql:ro
+      - ./infra/postgres/init.sql:/docker-entrypoint-initdb.d/00_init.sql:ro,Z
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 5s
@@ -22,7 +22,7 @@ services:
       retries: 10
 
   redis:
-    image: redis:7-alpine
+    image: docker.io/library/redis:7-alpine
     container_name: uninet-redis
     restart: unless-stopped
     ports:
@@ -51,7 +51,7 @@ services:
     ports:
       - "${BACKEND_PORT:-8000}:8000"
     volumes:
-      - ./backend:/app
+      - ./backend:/app:Z
     depends_on:
       postgres:
         condition: service_healthy
@@ -70,7 +70,7 @@ services:
     ports:
       - "${FRONTEND_PORT:-5173}:5173"
     volumes:
-      - ./frontend:/app
+      - ./frontend:/app:Z
       - /app/node_modules
     depends_on:
       - backend

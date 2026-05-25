@@ -1,11 +1,29 @@
 """Clase base SQLAlchemy y mixins compartidos."""
 
+import enum as _enum
 from datetime import datetime
+from typing import TypeVar
 from uuid import UUID, uuid4
 
-from sqlalchemy import DateTime, MetaData, func
+from sqlalchemy import DateTime, Enum, MetaData, func
 from sqlalchemy.dialects.postgresql import UUID as PgUUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+
+_E = TypeVar("_E", bound=_enum.Enum)
+
+
+def pg_enum(enum_cls: type[_E], *, name: str) -> Enum:
+    """Crea un `sa.Enum` que guarda el `.value` (string) en lugar del `.name`.
+
+    Sin esto SQLAlchemy serializaría como `ESTUDIANTE` (nombre Python),
+    pero el tipo en Postgres acepta sólo los valores `'estudiante'`, etc.
+    """
+    return Enum(
+        enum_cls,
+        name=name,
+        values_callable=lambda members: [m.value for m in members],
+        native_enum=True,
+    )
 
 # Convención de nombres para constraints — facilita migraciones Alembic.
 NAMING_CONVENTION = {

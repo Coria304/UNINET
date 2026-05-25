@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 
+import { useLogout } from "@/hooks/useAuth";
 import { useAuthStore } from "@/stores/authStore";
 
 interface Props {
@@ -16,7 +17,7 @@ const NAV = [
 
 function UsuarioLayout({ children }: Props) {
   const usuario = useAuthStore((s) => s.usuario);
-  const logout = useAuthStore((s) => s.logout);
+  const logoutMutation = useLogout();
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -31,7 +32,11 @@ function UsuarioLayout({ children }: Props) {
         </nav>
         <div className="text-sm">
           <span className="mr-3">{usuario?.nombre_completo}</span>
-          <button type="button" onClick={logout} className="underline">
+          <button
+            type="button"
+            onClick={() => logoutMutation.mutate()}
+            className="underline"
+          >
             Salir
           </button>
         </div>

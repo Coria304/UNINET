@@ -6,11 +6,11 @@ import enum
 from typing import TYPE_CHECKING
 from uuid import UUID
 
-from sqlalchemy import Boolean, Enum, ForeignKey, String
+from sqlalchemy import Boolean, ForeignKey, String
 from sqlalchemy.dialects.postgresql import UUID as PgUUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.models.base import Base, TimestampsMixin, UUIDPrimaryKeyMixin
+from app.models.base import Base, TimestampsMixin, UUIDPrimaryKeyMixin, pg_enum
 
 if TYPE_CHECKING:
     from app.models.alerta import Alerta
@@ -37,7 +37,7 @@ class AccessPoint(UUIDPrimaryKeyMixin, TimestampsMixin, Base):
         index=True,
     )
     banda: Mapped[BandaFrecuencia] = mapped_column(
-        Enum(BandaFrecuencia, name="banda_frecuencia"),
+        pg_enum(BandaFrecuencia, name="banda_frecuencia"),
         nullable=False,
         default=BandaFrecuencia.DUAL,
     )

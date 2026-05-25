@@ -4,12 +4,12 @@ import enum
 from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import DateTime, Enum, ForeignKey, String
+from sqlalchemy import DateTime, ForeignKey, String
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.dialects.postgresql import UUID as PgUUID
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.models.base import Base, TimestampsMixin, UUIDPrimaryKeyMixin
+from app.models.base import Base, TimestampsMixin, UUIDPrimaryKeyMixin, pg_enum
 
 
 class TipoReporte(str, enum.Enum):
@@ -22,7 +22,7 @@ class ReporteSLA(UUIDPrimaryKeyMixin, TimestampsMixin, Base):
     __tablename__ = "reportes_sla"
 
     tipo: Mapped[TipoReporte] = mapped_column(
-        Enum(TipoReporte, name="tipo_reporte"), nullable=False
+        pg_enum(TipoReporte, name="tipo_reporte"), nullable=False
     )
     rango_inicio: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     rango_fin: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)

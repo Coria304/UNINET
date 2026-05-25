@@ -7,11 +7,11 @@ from datetime import datetime
 from typing import TYPE_CHECKING
 from uuid import UUID
 
-from sqlalchemy import DateTime, Enum, ForeignKey, LargeBinary, String, Text, func
+from sqlalchemy import DateTime, ForeignKey, LargeBinary, String, Text, func
 from sqlalchemy.dialects.postgresql import UUID as PgUUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.models.base import Base, TimestampsMixin, UUIDPrimaryKeyMixin
+from app.models.base import Base, TimestampsMixin, UUIDPrimaryKeyMixin, pg_enum
 
 if TYPE_CHECKING:
     from app.models.alerta import Alerta
@@ -76,17 +76,17 @@ class Ticket(UUIDPrimaryKeyMixin, TimestampsMixin, Base):
     geohash: Mapped[str | None] = mapped_column(String(12), nullable=True, index=True)
 
     tipo_falla: Mapped[TipoFalla] = mapped_column(
-        Enum(TipoFalla, name="tipo_falla"), nullable=False
+        pg_enum(TipoFalla, name="tipo_falla"), nullable=False
     )
     descripcion: Mapped[str | None] = mapped_column(Text, nullable=True)
     estado: Mapped[EstadoTicket] = mapped_column(
-        Enum(EstadoTicket, name="estado_ticket"),
+        pg_enum(EstadoTicket, name="estado_ticket"),
         nullable=False,
         default=EstadoTicket.ACTIVO,
         index=True,
     )
     prioridad: Mapped[PrioridadTicket] = mapped_column(
-        Enum(PrioridadTicket, name="prioridad_ticket"),
+        pg_enum(PrioridadTicket, name="prioridad_ticket"),
         nullable=False,
         default=PrioridadTicket.MEDIA,
     )
@@ -128,10 +128,10 @@ class TicketHistorico(UUIDPrimaryKeyMixin, Base):
         nullable=True,
     )
     estado_anterior: Mapped[EstadoTicket | None] = mapped_column(
-        Enum(EstadoTicket, name="estado_ticket"), nullable=True
+        pg_enum(EstadoTicket, name="estado_ticket"), nullable=True
     )
     estado_nuevo: Mapped[EstadoTicket] = mapped_column(
-        Enum(EstadoTicket, name="estado_ticket"), nullable=False
+        pg_enum(EstadoTicket, name="estado_ticket"), nullable=False
     )
     comentario: Mapped[str | None] = mapped_column(Text, nullable=True)
     fecha: Mapped[datetime] = mapped_column(

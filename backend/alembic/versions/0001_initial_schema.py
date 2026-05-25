@@ -21,40 +21,60 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 # --- Enums --------------------------------------------------------------
-ROL_USUARIO = sa.Enum(
+# Usamos `postgresql.ENUM` (no `sa.Enum`) para que `create_type=False`
+# sea respetado dentro de `op.create_table`. Los tipos se crean una sola
+# vez explícitamente al inicio del `upgrade()`.
+ROL_USUARIO = postgresql.ENUM(
     "administrador_ti", "personal_tecnico", "docente", "estudiante",
-    name="rol_usuario",
+    name="rol_usuario", create_type=False,
 )
-BANDA_FRECUENCIA = sa.Enum("2.4_GHz", "5_GHz", "dual", name="banda_frecuencia")
-TIPO_FALLA = sa.Enum(
-    "sin_senal", "lentitud", "desconexion_intermitente", "otro", name="tipo_falla",
+BANDA_FRECUENCIA = postgresql.ENUM(
+    "2.4_GHz", "5_GHz", "dual", name="banda_frecuencia", create_type=False,
 )
-ESTADO_TICKET = sa.Enum("activo", "en_proceso", "resuelto", name="estado_ticket")
-PRIORIDAD_TICKET = sa.Enum("alta", "media", "baja", name="prioridad_ticket")
-TIPO_ALERTA = sa.Enum(
-    "saturacion_carga", "latencia_alta", "nodo_caido", name="tipo_alerta",
+TIPO_FALLA = postgresql.ENUM(
+    "sin_senal", "lentitud", "desconexion_intermitente", "otro",
+    name="tipo_falla", create_type=False,
 )
-ESTADO_ALERTA = sa.Enum(
-    "activa", "atendida", "cerrada_auto", "escalada", name="estado_alerta",
+ESTADO_TICKET = postgresql.ENUM(
+    "activo", "en_proceso", "resuelto", name="estado_ticket", create_type=False,
 )
-TIPO_REPORTE = sa.Enum(
-    "sla_mensual", "disponibilidad_diaria", "incidencias", name="tipo_reporte",
+PRIORIDAD_TICKET = postgresql.ENUM(
+    "alta", "media", "baja", name="prioridad_ticket", create_type=False,
 )
+TIPO_ALERTA = postgresql.ENUM(
+    "saturacion_carga", "latencia_alta", "nodo_caido",
+    name="tipo_alerta", create_type=False,
+)
+ESTADO_ALERTA = postgresql.ENUM(
+    "activa", "atendida", "cerrada_auto", "escalada",
+    name="estado_alerta", create_type=False,
+)
+TIPO_REPORTE = postgresql.ENUM(
+    "sla_mensual", "disponibilidad_diaria", "incidencias",
+    name="tipo_reporte", create_type=False,
+)
+
+_ENUM_DEFINITIONS: list[tuple[str, tuple[str, ...]]] = [
+    ("rol_usuario", ROL_USUARIO.enums),
+    ("banda_frecuencia", BANDA_FRECUENCIA.enums),
+    ("tipo_falla", TIPO_FALLA.enums),
+    ("estado_ticket", ESTADO_TICKET.enums),
+    ("prioridad_ticket", PRIORIDAD_TICKET.enums),
+    ("tipo_alerta", TIPO_ALERTA.enums),
+    ("estado_alerta", ESTADO_ALERTA.enums),
+    ("tipo_reporte", TIPO_REPORTE.enums),
+]
 
 
 def upgrade() -> None:
-    bind = op.get_bind()
-
     # Extensiones (idempotentes; init.sql también las crea, pero esto cubre entornos limpios).
     op.execute("CREATE EXTENSION IF NOT EXISTS pgcrypto")
     op.execute("CREATE EXTENSION IF NOT EXISTS citext")
     op.execute("CREATE EXTENSION IF NOT EXISTS timescaledb")
 
-    for enum_obj in (
-        ROL_USUARIO, BANDA_FRECUENCIA, TIPO_FALLA, ESTADO_TICKET,
-        PRIORIDAD_TICKET, TIPO_ALERTA, ESTADO_ALERTA, TIPO_REPORTE,
-    ):
-        enum_obj.create(bind, checkfirst=True)
+    for name, values in _ENUM_DEFINITIONS:
+        values_sql = ", ".join(f"'{v}'" for v in values)
+        op.execute(f"CREATE TYPE {name} AS ENUM ({values_sql})")
 
     # --- usuarios -------------------------------------------------------
     op.create_table(
@@ -345,9 +365,5 @@ def downgrade() -> None:
     op.drop_index("ix_usuarios_correo", table_name="usuarios")
     op.drop_table("usuarios")
 
-    bind = op.get_bind()
-    for enum_obj in (
-        TIPO_REPORTE, ESTADO_ALERTA, TIPO_ALERTA, PRIORIDAD_TICKET,
-        ESTADO_TICKET, TIPO_FALLA, BANDA_FRECUENCIA, ROL_USUARIO,
-    ):
-        enum_obj.drop(bind, checkfirst=True)
+    for name, _ in reversed(_ENUM_DEFINITIONS):
+        op.execute(f"DROP TYPE IF EXISTS {name}")

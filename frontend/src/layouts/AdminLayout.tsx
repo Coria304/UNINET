@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 
+import { useLogout } from "@/hooks/useAuth";
 import { useAuthStore } from "@/stores/authStore";
 
 interface Props {
@@ -17,7 +18,7 @@ const NAV = [
 
 function AdminLayout({ children }: Props) {
   const usuario = useAuthStore((s) => s.usuario);
-  const logout = useAuthStore((s) => s.logout);
+  const logoutMutation = useLogout();
 
   return (
     <div className="flex min-h-screen">
@@ -39,7 +40,7 @@ function AdminLayout({ children }: Props) {
           <div className="text-brand-50/70">Administrador TI</div>
           <button
             type="button"
-            onClick={logout}
+            onClick={() => logoutMutation.mutate()}
             className="mt-3 text-brand-50 underline"
           >
             Cerrar sesión

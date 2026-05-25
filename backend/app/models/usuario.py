@@ -3,13 +3,14 @@
 from __future__ import annotations
 
 import enum
+from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import Boolean, Enum, String
+from sqlalchemy import Boolean, DateTime, Integer, String
 from sqlalchemy.dialects.postgresql import CITEXT
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.models.base import Base, TimestampsMixin, UUIDPrimaryKeyMixin
+from app.models.base import Base, TimestampsMixin, UUIDPrimaryKeyMixin, pg_enum
 
 if TYPE_CHECKING:
     from app.models.audit_log import AuditLog
@@ -30,12 +31,21 @@ class Usuario(UUIDPrimaryKeyMixin, TimestampsMixin, Base):
     nombre_completo: Mapped[str] = mapped_column(String(200), nullable=False)
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     rol: Mapped[RolUsuario] = mapped_column(
-        Enum(RolUsuario, name="rol_usuario"),
+        pg_enum(RolUsuario, name="rol_usuario"),
         nullable=False,
         index=True,
     )
     mfa_secret: Mapped[str | None] = mapped_column(String(64), nullable=True)
     activo: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+
+    # --- Estado del flujo de autenticación (RF009, RNF001) ---
+    failed_login_attempts: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    locked_until: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    last_login_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
 
     tickets_reportados: Mapped[list[Ticket]] = relationship(
         back_populates="reportante",
