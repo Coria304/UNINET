@@ -1,21 +1,19 @@
-import { Link } from "react-router-dom";
+import { NavLink, Outlet } from "react-router-dom";
 
 import { useLogout } from "@/hooks/useAuth";
 import { useAuthStore } from "@/stores/authStore";
 
-interface Props {
-  children: React.ReactNode;
-}
-
 const NAV = [
-  { to: "/portal", label: "Inicio" },
+  { to: "/portal", label: "Inicio", end: true },
   { to: "/portal/reportar", label: "Reportar falla" },
-  { to: "/portal/mis-tickets", label: "Mis reportes" },
-  { to: "/portal/speedtest", label: "Speedtest" },
-  { to: "/portal/mapa", label: "Mapa de calor" },
+  { to: "/portal/mis-reportes", label: "Mis reportes" },
 ];
 
-function UsuarioLayout({ children }: Props) {
+function navClass({ isActive }: { isActive: boolean }) {
+  return `hover:underline ${isActive ? "underline font-medium" : ""}`;
+}
+
+function UsuarioLayout() {
   const usuario = useAuthStore((s) => s.usuario);
   const logoutMutation = useLogout();
 
@@ -25,9 +23,9 @@ function UsuarioLayout({ children }: Props) {
         <h1 className="text-lg font-semibold">UniNet Connect</h1>
         <nav className="space-x-4">
           {NAV.map((item) => (
-            <Link key={item.to} to={item.to} className="hover:underline">
+            <NavLink key={item.to} to={item.to} end={item.end} className={navClass}>
               {item.label}
-            </Link>
+            </NavLink>
           ))}
         </nav>
         <div className="text-sm">
@@ -41,7 +39,9 @@ function UsuarioLayout({ children }: Props) {
           </button>
         </div>
       </header>
-      <main className="flex-1 p-6 bg-slate-50">{children}</main>
+      <main className="flex-1 p-6 bg-slate-50">
+        <Outlet />
+      </main>
     </div>
   );
 }

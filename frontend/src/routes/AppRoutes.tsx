@@ -4,9 +4,16 @@ import { useHydrateSession } from "@/hooks/useAuth";
 import AdminLayout from "@/layouts/AdminLayout";
 import TecnicoLayout from "@/layouts/TecnicoLayout";
 import UsuarioLayout from "@/layouts/UsuarioLayout";
-import Dashboard from "@/pages/Dashboard";
+import AdminInicio from "@/pages/admin/Inicio";
+import TicketsAdmin from "@/pages/admin/TicketsAdmin";
 import Login from "@/pages/Login";
 import NotFound from "@/pages/NotFound";
+import PortalInicio from "@/pages/portal/Inicio";
+import MisReportes from "@/pages/portal/MisReportes";
+import ReportarFalla from "@/pages/portal/ReportarFalla";
+import TecnicoInicio from "@/pages/tecnico/Inicio";
+import TicketDetail from "@/pages/tecnico/TicketDetail";
+import TicketsList from "@/pages/tecnico/TicketsList";
 import Unauthorized from "@/pages/Unauthorized";
 import VerifyMFA from "@/pages/VerifyMFA";
 import ProtectedRoute from "@/routes/ProtectedRoute";
@@ -37,37 +44,42 @@ function AppRoutes() {
       <Route path="/unauthorized" element={<Unauthorized />} />
 
       <Route
-        path="/admin/*"
+        path="/admin"
         element={
           <ProtectedRoute roles={["administrador_ti"]}>
-            <AdminLayout>
-              <Dashboard />
-            </AdminLayout>
+            <AdminLayout />
           </ProtectedRoute>
         }
-      />
+      >
+        <Route index element={<AdminInicio />} />
+        <Route path="tickets" element={<TicketsAdmin />} />
+      </Route>
 
       <Route
-        path="/tecnico/*"
+        path="/tecnico"
         element={
           <ProtectedRoute roles={["personal_tecnico"]}>
-            <TecnicoLayout>
-              <Dashboard />
-            </TecnicoLayout>
+            <TecnicoLayout />
           </ProtectedRoute>
         }
-      />
+      >
+        <Route index element={<TecnicoInicio />} />
+        <Route path="tickets" element={<TicketsList />} />
+        <Route path="tickets/:ticketId" element={<TicketDetail />} />
+      </Route>
 
       <Route
-        path="/portal/*"
+        path="/portal"
         element={
           <ProtectedRoute roles={["estudiante", "docente"]}>
-            <UsuarioLayout>
-              <Dashboard />
-            </UsuarioLayout>
+            <UsuarioLayout />
           </ProtectedRoute>
         }
-      />
+      >
+        <Route index element={<PortalInicio />} />
+        <Route path="reportar" element={<ReportarFalla />} />
+        <Route path="mis-reportes" element={<MisReportes />} />
+      </Route>
 
       <Route path="/" element={<RoleRedirect />} />
       <Route path="*" element={<NotFound />} />

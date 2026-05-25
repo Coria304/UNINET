@@ -19,7 +19,7 @@ from app.core.database import SessionLocal, engine
 from app.core.redis import get_redis
 from app.core.security import hash_password
 from app.main import app
-from app.models import Base, RolUsuario, Usuario
+from app.models import Aula, Base, Edificio, Piso, RolUsuario, Usuario
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -35,13 +35,24 @@ def _prepare_schema() -> Generator[None, None, None]:
 
 @pytest.fixture(autouse=True)
 def _clean_state() -> Generator[None, None, None]:
-    """Vacía tablas y Redis antes de cada test."""
+    """Vacía todas las tablas del schema y Redis antes de cada test.
+
+    Descubre las tablas dinámicamente para que no haya que mantener una
+    lista en sync conforme crece el modelo.
+    """
     with engine.begin() as conn:
-        conn.execute(
-            text(
-                "TRUNCATE audit_log, usuarios RESTART IDENTITY CASCADE"
+        tables = [
+            row[0]
+            for row in conn.execute(
+                text(
+                    "SELECT tablename FROM pg_tables "
+                    "WHERE schemaname = 'public' AND tablename <> 'alembic_version'"
+                )
             )
-        )
+        ]
+        if tables:
+            quoted = ", ".join(f'"{t}"' for t in tables)
+            conn.execute(text(f"TRUNCATE {quoted} RESTART IDENTITY CASCADE"))
     get_redis().flushdb()
     yield
 
@@ -101,3 +112,41 @@ def admin(db_session) -> Usuario:
     db_session.commit()
     db_session.refresh(user)
     return user
+
+
+@pytest.fixture
+def tecnico(db_session) -> Usuario:
+    user = Usuario(
+        correo="tecnico@escom.ipn.mx",
+        nombre_completo="Técnico de Prueba",
+        password_hash=hash_password("Tecnico#2026"),
+        rol=RolUsuario.PERSONAL_TECNICO,
+    )
+    db_session.add(user)
+    db_session.commit()
+    db_session.refresh(user)
+    return user
+
+
+# -------------------------------------------------------------------
+# Fixtures de ubicación (mínimo viable para tests de RF001/RF004)
+# -------------------------------------------------------------------
+@pytest.fixture
+def edificio(db_session) -> Edificio:
+    """Edificio con un piso y un aula listos para usar."""
+    edif = Edificio(
+        codigo="ED-TEST",
+        nombre="Edificio de Pruebas",
+        latitud=19.5046,
+        longitud=-99.1467,
+    )
+    db_session.add(edif)
+    db_session.flush()
+    piso = Piso(edificio_id=edif.id, numero=1, nombre="Piso 1 (test)")
+    db_session.add(piso)
+    db_session.flush()
+    aula = Aula(piso_id=piso.id, codigo="T100", nombre="Aula T100", tipo="aula")
+    db_session.add(aula)
+    db_session.commit()
+    db_session.refresh(edif)
+    return edif

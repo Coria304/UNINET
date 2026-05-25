@@ -1,22 +1,20 @@
-import { Link } from "react-router-dom";
+import { NavLink, Outlet } from "react-router-dom";
 
 import { useLogout } from "@/hooks/useAuth";
 import { useAuthStore } from "@/stores/authStore";
 
-interface Props {
-  children: React.ReactNode;
-}
-
 const NAV = [
-  { to: "/admin", label: "Dashboard" },
-  { to: "/admin/mapa", label: "Mapa de calor" },
+  { to: "/admin", label: "Dashboard", end: true },
   { to: "/admin/tickets", label: "Tickets" },
-  { to: "/admin/alertas", label: "Alertas" },
-  { to: "/admin/reportes", label: "Reportes SLA" },
-  { to: "/admin/configuracion", label: "Configuración" },
 ];
 
-function AdminLayout({ children }: Props) {
+function navClass({ isActive }: { isActive: boolean }) {
+  return `block rounded px-3 py-2 hover:bg-brand-700 ${
+    isActive ? "bg-brand-700 font-medium" : ""
+  }`;
+}
+
+function AdminLayout() {
   const usuario = useAuthStore((s) => s.usuario);
   const logoutMutation = useLogout();
 
@@ -26,13 +24,9 @@ function AdminLayout({ children }: Props) {
         <h1 className="text-lg font-semibold mb-6">UniNet Connect</h1>
         <nav className="flex-1 space-y-1">
           {NAV.map((item) => (
-            <Link
-              key={item.to}
-              to={item.to}
-              className="block rounded px-3 py-2 hover:bg-brand-700"
-            >
+            <NavLink key={item.to} to={item.to} end={item.end} className={navClass}>
               {item.label}
-            </Link>
+            </NavLink>
           ))}
         </nav>
         <div className="mt-6 text-sm">
@@ -47,7 +41,9 @@ function AdminLayout({ children }: Props) {
           </button>
         </div>
       </aside>
-      <main className="flex-1 p-6 bg-slate-50">{children}</main>
+      <main className="flex-1 p-6 bg-slate-50">
+        <Outlet />
+      </main>
     </div>
   );
 }
