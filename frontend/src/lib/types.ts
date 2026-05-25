@@ -114,3 +114,39 @@ export interface Edificio {
   longitud: number | null;
   pisos: Piso[];
 }
+
+/**
+ * Etiquetas legibles para el campo `tipo` del aula. Coinciden con los
+ * tipos que emite seeds/seed_escom.py. Cualquier tipo no listado se
+ * muestra capitalizando la propia palabra.
+ */
+export const TIPO_AULA_LABEL: Record<string, string> = {
+  aula: "Aula",
+  laboratorio: "Laboratorio",
+  cubiculo: "Cubículo",
+  posgrado: "Salón de posgrado",
+  computo: "Aula de computadoras",
+  unidad_informatica: "Unidad de Informática",
+  biblioteca: "Biblioteca",
+  auditorio: "Auditorio",
+  administracion: "Cubículos administrativos",
+};
+
+export function tipoAulaLabel(tipo: string | null | undefined): string {
+  if (!tipo) return "";
+  return TIPO_AULA_LABEL[tipo] ?? tipo;
+}
+
+/**
+ * Formato canónico para mostrar un aula en listas/dropdowns.
+ *   - "1101 — Unidad de Informática" cuando hay nombre
+ *   - "1103 (Laboratorio)" cuando el tipo difiere del default
+ *   - "1001" para aulas estándar sin nombre
+ */
+export function formatAulaLabel(aula: Aula): string {
+  if (aula.nombre) return `${aula.codigo} — ${aula.nombre}`;
+  if (aula.tipo && aula.tipo !== "aula") {
+    return `${aula.codigo} (${tipoAulaLabel(aula.tipo)})`;
+  }
+  return aula.codigo;
+}

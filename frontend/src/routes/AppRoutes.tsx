@@ -8,6 +8,7 @@ import AdminInicio from "@/pages/admin/Inicio";
 import TicketsAdmin from "@/pages/admin/TicketsAdmin";
 import Login from "@/pages/Login";
 import NotFound from "@/pages/NotFound";
+import MiReporteDetalle from "@/pages/portal/MiReporteDetalle";
 import PortalInicio from "@/pages/portal/Inicio";
 import MisReportes from "@/pages/portal/MisReportes";
 import ReportarFalla from "@/pages/portal/ReportarFalla";
@@ -79,6 +80,7 @@ function AppRoutes() {
         <Route index element={<PortalInicio />} />
         <Route path="reportar" element={<ReportarFalla />} />
         <Route path="mis-reportes" element={<MisReportes />} />
+        <Route path="mis-reportes/:ticketId" element={<MiReporteDetalle />} />
       </Route>
 
       <Route path="/" element={<RoleRedirect />} />

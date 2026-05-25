@@ -6,6 +6,8 @@ import {
   ESTADO_COLOR,
   ESTADO_LABEL,
   TIPO_FALLA_LABEL,
+  formatAulaLabel,
+  type Aula,
   type Edificio,
 } from "@/lib/types";
 
@@ -21,12 +23,10 @@ function formatFecha(iso: string): string {
 
 function buildUbicacionLookup(edificios: Edificio[] | undefined) {
   const edif = new Map<string, string>();
-  const aulas = new Map<string, string>();
+  const aulas = new Map<string, Aula>();
   edificios?.forEach((e) => {
     edif.set(e.id, e.codigo);
-    e.pisos.forEach((p) =>
-      p.aulas.forEach((a) => aulas.set(a.id, a.codigo)),
-    );
+    e.pisos.forEach((p) => p.aulas.forEach((a) => aulas.set(a.id, a)));
   });
   return { edif, aulas };
 }
@@ -59,38 +59,44 @@ function MisReportes() {
 
       <ul className="space-y-3">
         {tickets?.map((t) => (
-          <li key={t.id} className="bg-white rounded-lg shadow p-4">
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="font-medium">
-                    {TIPO_FALLA_LABEL[t.tipo_falla]}
-                  </span>
-                  <span
-                    className={`text-xs px-2 py-0.5 rounded ${ESTADO_COLOR[t.estado]}`}
-                  >
-                    {ESTADO_LABEL[t.estado]}
-                  </span>
-                </div>
-                <div className="text-sm text-slate-600">
-                  Edificio <strong>{lookup.edif.get(t.edificio_id) ?? "?"}</strong>
-                  {t.aula_id && (
-                    <>
-                      {" · Aula "}
-                      <strong>{lookup.aulas.get(t.aula_id) ?? "?"}</strong>
-                    </>
+          <li key={t.id}>
+            <Link
+              to={`/portal/mis-reportes/${t.id}`}
+              className="block bg-white rounded-lg shadow p-4 hover:shadow-md hover:border-brand-200 border border-transparent transition"
+            >
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="font-medium">
+                      {TIPO_FALLA_LABEL[t.tipo_falla]}
+                    </span>
+                    <span
+                      className={`text-xs px-2 py-0.5 rounded ${ESTADO_COLOR[t.estado]}`}
+                    >
+                      {ESTADO_LABEL[t.estado]}
+                    </span>
+                  </div>
+                  <div className="text-sm text-slate-600">
+                    Edificio{" "}
+                    <strong>{lookup.edif.get(t.edificio_id) ?? "?"}</strong>
+                    {t.aula_id && lookup.aulas.get(t.aula_id) && (
+                      <>
+                        {" · "}
+                        <strong>{formatAulaLabel(lookup.aulas.get(t.aula_id)!)}</strong>
+                      </>
+                    )}
+                  </div>
+                  {t.descripcion && (
+                    <p className="text-sm text-slate-500 mt-1 line-clamp-2">
+                      {t.descripcion}
+                    </p>
                   )}
                 </div>
-                {t.descripcion && (
-                  <p className="text-sm text-slate-500 mt-1 line-clamp-2">
-                    {t.descripcion}
-                  </p>
-                )}
+                <div className="text-xs text-slate-400 whitespace-nowrap text-right">
+                  {formatFecha(t.created_at)}
+                </div>
               </div>
-              <div className="text-xs text-slate-400 whitespace-nowrap text-right">
-                {formatFecha(t.created_at)}
-              </div>
-            </div>
+            </Link>
           </li>
         ))}
       </ul>

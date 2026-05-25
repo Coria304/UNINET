@@ -3,12 +3,67 @@
 Cada test corre con esquema limpio: rollback al cierre de la sesión y
 truncado de tablas entre tests. Redis se limpia con FLUSHDB para que los
 retos MFA no contaminen casos posteriores.
+
+Importante: los tests SIEMPRE corren contra la BD `uninet_test`, distinta
+de `uninet` (la de desarrollo). El override de DATABASE_URL ocurre antes
+de cualquier import de `app.*` para que `app.core.config` y el engine
+de SQLAlchemy ya nazcan apuntando a la BD correcta. Si la BD de tests
+no existe, se crea on-the-fly junto con las extensiones requeridas
+(pgcrypto, citext, timescaledb).
 """
 
 from __future__ import annotations
 
+# --- Override de la BD ANTES de cualquier import de app.* -----------
+import os
 from collections.abc import Generator
 from typing import Any
+from urllib.parse import urlsplit
+
+import psycopg
+
+_TEST_DB_NAME = os.environ.get("UNINET_TEST_DB", "uninet_test")
+_PG_USER = os.environ.get("POSTGRES_USER", "uninet")
+_PG_PASSWORD = os.environ.get("POSTGRES_PASSWORD", "uninet_dev")
+_PG_HOST = "localhost"
+_PG_PORT = os.environ.get("POSTGRES_PORT", "5432")
+
+os.environ["DATABASE_URL"] = (
+    f"postgresql+psycopg://{_PG_USER}:{_PG_PASSWORD}"
+    f"@{_PG_HOST}:{_PG_PORT}/{_TEST_DB_NAME}"
+)
+
+
+def _ensure_test_database() -> None:
+    """Crea la BD de tests si no existe y aplica las extensiones requeridas."""
+    admin_dsn = (
+        f"postgresql://{_PG_USER}:{_PG_PASSWORD}@{_PG_HOST}:{_PG_PORT}/postgres"
+    )
+    with psycopg.connect(admin_dsn, autocommit=True) as conn:
+        cur = conn.execute(
+            "SELECT 1 FROM pg_database WHERE datname = %s", (_TEST_DB_NAME,)
+        )
+        if cur.fetchone() is None:
+            # No se puede parametrizar DDL — el nombre viene de config, no de input externo.
+            conn.execute(f'CREATE DATABASE "{_TEST_DB_NAME}"')
+
+    test_dsn = (
+        f"postgresql://{_PG_USER}:{_PG_PASSWORD}@{_PG_HOST}:{_PG_PORT}/{_TEST_DB_NAME}"
+    )
+    with psycopg.connect(test_dsn, autocommit=True) as conn:
+        # Las extensiones replican lo que hace la migración 0001 — el create_all
+        # de SQLAlchemy crea tablas pero no extensiones.
+        conn.execute("CREATE EXTENSION IF NOT EXISTS pgcrypto")
+        conn.execute("CREATE EXTENSION IF NOT EXISTS citext")
+        conn.execute("CREATE EXTENSION IF NOT EXISTS timescaledb")
+
+
+_ensure_test_database()
+# Marker para debugging cuando alguien se confunde de BD.
+assert urlsplit(os.environ["DATABASE_URL"]).path == f"/{_TEST_DB_NAME}", (
+    "conftest no logró fijar la BD de tests — revisa el orden de imports."
+)
+# --------------------------------------------------------------------
 
 import pytest
 from fastapi.testclient import TestClient

@@ -1,10 +1,11 @@
 import { Link } from "react-router-dom";
 
-import type { Edificio, TicketListItem } from "@/lib/types";
+import type { Aula, Edificio, TicketListItem } from "@/lib/types";
 import {
   ESTADO_COLOR,
   ESTADO_LABEL,
   TIPO_FALLA_LABEL,
+  formatAulaLabel,
 } from "@/lib/types";
 
 interface Props {
@@ -28,12 +29,10 @@ function formatFecha(iso: string): string {
 
 function buildLookup(edificios: Edificio[] | undefined) {
   const edif = new Map<string, string>();
-  const aulas = new Map<string, string>();
+  const aulas = new Map<string, Aula>();
   edificios?.forEach((e) => {
     edif.set(e.id, e.codigo);
-    e.pisos.forEach((p) =>
-      p.aulas.forEach((a) => aulas.set(a.id, a.codigo)),
-    );
+    e.pisos.forEach((p) => p.aulas.forEach((a) => aulas.set(a.id, a)));
   });
   return { edif, aulas };
 }
@@ -69,10 +68,11 @@ function TicketsTable({
         </thead>
         <tbody>
           {tickets.map((t) => {
+            const aula = t.aula_id ? lookup.aulas.get(t.aula_id) : null;
             const ubicacion = (
               <>
                 <strong>{lookup.edif.get(t.edificio_id) ?? "?"}</strong>
-                {t.aula_id && <> · {lookup.aulas.get(t.aula_id) ?? "?"}</>}
+                {aula && <> · {formatAulaLabel(aula)}</>}
               </>
             );
             const RowWrapper = detailBasePath ? "tr" : "tr";

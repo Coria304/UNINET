@@ -1,13 +1,16 @@
 """Seed inicial de ESCOM-IPN.
 
 Pobla:
-  * Usuarios de prueba con los 4 roles.
-  * Edificios principales de ESCOM (1, 2, 3, 4) con pisos y aulas.
+  * Usuarios de prueba con los 4 roles (RF009).
+  * Edificios reales de ESCOM con su nomenclatura ABCD:
+    A = edificio (1-4, edif. labs comparte 3xxx/4xxx según lado, gobierno aparte).
+    B = piso (0 PB, 1 P1, 2 P2).
+    CD = número de salón (01-14).
   * Access Points distribuidos por aula con bandas mixtas.
   * Configuración de umbrales por defecto.
 
 Ejecutar con:
-    docker compose exec backend python -m seeds.seed_escom
+    python -m seeds.seed_escom
 
 Idempotente: detecta seeds previos por código y los omite.
 """
@@ -15,6 +18,7 @@ Idempotente: detecta seeds previos por código y los omite.
 from __future__ import annotations
 
 import logging
+from typing import Any
 
 from sqlalchemy import select
 
@@ -35,7 +39,7 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 
 
-# --- Datos de referencia ----------------------------------------------------
+# --- Usuarios demo ----------------------------------------------------------
 USUARIOS_SEMILLA = [
     {
         "correo": "admin.ti@escom.ipn.mx",
@@ -63,58 +67,169 @@ USUARIOS_SEMILLA = [
     },
 ]
 
-EDIFICIOS_ESCOM = [
+
+# --- Helpers de construcción ------------------------------------------------
+def aulas(prefijo: int, start: int, end: int, *, tipo: str = "aula") -> list[dict[str, Any]]:
+    """Genera aulas correlativas con el patrón <prefijo><cd 2 dígitos>."""
+    return [{"codigo": f"{prefijo}{i:02d}", "tipo": tipo} for i in range(start, end + 1)]
+
+
+# --- Catálogo de edificios reales de ESCOM ---------------------------------
+# Coordenadas aproximadas (centroides en la huella real del campus de
+# Zacatenco según OpenStreetMap). El campus está ligeramente rotado
+# respecto al norte geográfico; OSM siempre dibuja con norte arriba, así
+# que los marcadores reflejan la posición geográfica real, no la
+# orientación del mapa estilizado de ESCOM. Para afinar: clic derecho
+# sobre un edificio en openstreetmap.org → "Mostrar dirección" → copiar
+# lat/lon aquí.
+EDIFICIOS_ESCOM: list[dict[str, Any]] = [
     {
         "codigo": "ED1",
-        "nombre": "Edificio 1 — Aulas",
-        "descripcion": "Aulas teóricas y oficinas administrativas.",
-        "latitud": 19.5046,
-        "longitud": -99.1467,
+        "nombre": "Edificio 1",
+        "descripcion": "Salones y laboratorios — lado este, sur del edif. de laboratorios.",
+        "latitud": 19.5042,
+        "longitud": -99.1461,
         "pisos": [
-            {"numero": 0, "nombre": "Planta Baja", "aulas": ["1100", "1101", "1102", "1103"]},
-            {"numero": 1, "nombre": "Piso 1", "aulas": ["1200", "1201", "1202", "1203"]},
-            {"numero": 2, "nombre": "Piso 2", "aulas": ["1300", "1301", "1302", "1303"]},
-            {"numero": 3, "nombre": "Piso 3", "aulas": ["1400", "1401", "1402", "1403"]},
+            {
+                "numero": 0,
+                "nombre": "Planta Baja",
+                "aulas": aulas(10, 1, 14, tipo="aula"),  # 1001-1014
+            },
+            {
+                "numero": 1,
+                "nombre": "Primer Piso",
+                "aulas": [
+                    {"codigo": "1101", "nombre": "Unidad de Informática", "tipo": "unidad_informatica"},
+                    {"codigo": "1102", "nombre": "Aula de Computadoras", "tipo": "computo"},
+                    {"codigo": "1103", "tipo": "laboratorio"},
+                    {"codigo": "1104", "tipo": "laboratorio"},
+                    {"codigo": "1105", "tipo": "laboratorio"},
+                    {"codigo": "1106", "tipo": "cubiculo"},
+                    *aulas(11, 7, 14, tipo="aula"),  # 1107-1114
+                ],
+            },
+            {
+                "numero": 2,
+                "nombre": "Segundo Piso",
+                "aulas": aulas(12, 1, 14, tipo="aula"),  # 1201-1214
+            },
         ],
     },
     {
         "codigo": "ED2",
-        "nombre": "Edificio 2 — Laboratorios",
-        "descripcion": "Laboratorios de cómputo y redes.",
-        "latitud": 19.5048,
-        "longitud": -99.1465,
+        "nombre": "Edificio 2",
+        "descripcion": "Salones, posgrado y laboratorios — lado oeste, sur del edif. de laboratorios.",
+        "latitud": 19.5042,
+        "longitud": -99.1467,
         "pisos": [
-            {"numero": 0, "nombre": "Planta Baja", "aulas": ["LAB1", "LAB2", "LAB3"]},
-            {"numero": 1, "nombre": "Piso 1", "aulas": ["LAB4", "LAB5", "LAB6"]},
-            {"numero": 2, "nombre": "Piso 2", "aulas": ["LAB7", "LAB8"]},
+            {
+                "numero": 0,
+                "nombre": "Planta Baja",
+                "aulas": [
+                    *aulas(20, 1, 7, tipo="aula"),  # 2001-2007
+                    *aulas(20, 8, 14, tipo="posgrado"),  # 2008-2014 posgrado
+                ],
+            },
+            {
+                "numero": 1,
+                "nombre": "Primer Piso",
+                "aulas": [
+                    {"codigo": "2101", "tipo": "cubiculo"},
+                    *aulas(21, 2, 7, tipo="laboratorio"),  # 2102-2107
+                    *aulas(21, 8, 14, tipo="posgrado"),  # 2108-2114
+                ],
+            },
+            {
+                "numero": 2,
+                "nombre": "Segundo Piso",
+                "aulas": aulas(22, 1, 14, tipo="aula"),  # 2201-2214
+            },
         ],
     },
     {
         "codigo": "ED3",
-        "nombre": "Edificio 3 — Investigación",
-        "descripcion": "Posgrado e investigación.",
-        "latitud": 19.5050,
-        "longitud": -99.1463,
+        "nombre": "Edificio 3",
+        "descripcion": "Salones — lado este, norte del edif. de laboratorios.",
+        "latitud": 19.5048,
+        "longitud": -99.1461,
         "pisos": [
-            {"numero": 0, "nombre": "Planta Baja", "aulas": ["AULA_MAGNA", "BIBLIOTECA"]},
-            {"numero": 1, "nombre": "Piso 1", "aulas": ["POS1", "POS2"]},
+            {"numero": 0, "nombre": "Planta Baja", "aulas": aulas(30, 8, 13, tipo="aula")},
+            {"numero": 1, "nombre": "Primer Piso", "aulas": aulas(31, 8, 13, tipo="aula")},
+            {"numero": 2, "nombre": "Segundo Piso", "aulas": aulas(32, 8, 13, tipo="aula")},
         ],
     },
     {
         "codigo": "ED4",
-        "nombre": "Edificio 4 — Aulas Avanzadas",
-        "descripcion": "Aulas inteligentes y áreas comunes.",
-        "latitud": 19.5044,
-        "longitud": -99.1469,
+        "nombre": "Edificio 4",
+        "descripcion": "Salones — lado oeste, norte del edif. de laboratorios.",
+        "latitud": 19.5048,
+        "longitud": -99.1467,
         "pisos": [
-            {"numero": 0, "nombre": "Planta Baja", "aulas": ["CAFETERIA", "AREA_COMUN"]},
-            {"numero": 1, "nombre": "Piso 1", "aulas": ["4100", "4101"]},
-            {"numero": 2, "nombre": "Piso 2", "aulas": ["4200", "4201"]},
+            {"numero": 0, "nombre": "Planta Baja", "aulas": aulas(40, 8, 13, tipo="aula")},
+            {"numero": 1, "nombre": "Primer Piso", "aulas": aulas(41, 8, 13, tipo="aula")},
+            {"numero": 2, "nombre": "Segundo Piso", "aulas": aulas(42, 8, 13, tipo="aula")},
+        ],
+    },
+    {
+        "codigo": "LABS",
+        "nombre": "Edificio de Laboratorios",
+        "descripcion": (
+            "Edificio central. La nomenclatura comparte prefijos con los edificios "
+            "3 y 4 según el lado: lado derecho usa 3xxx, lado izquierdo usa 4xxx."
+        ),
+        "latitud": 19.5045,
+        "longitud": -99.1464,
+        "pisos": [
+            {
+                "numero": 0,
+                "nombre": "Planta Baja",
+                "aulas": [
+                    # Lado derecho (3xxx)
+                    *aulas(30, 1, 7, tipo="laboratorio"),  # 3001-3007
+                    # Lado izquierdo (4xxx)
+                    *aulas(40, 1, 7, tipo="laboratorio"),  # 4001-4007
+                ],
+            },
+            {
+                "numero": 1,
+                "nombre": "Primer Piso",
+                "aulas": [
+                    *aulas(31, 1, 7, tipo="cubiculo"),  # 3101-3107
+                    *aulas(41, 1, 7, tipo="cubiculo"),  # 4101-4107
+                ],
+            },
+            {
+                "numero": 2,
+                "nombre": "Segundo Piso",
+                "aulas": [
+                    *aulas(32, 1, 7, tipo="cubiculo"),  # 3201-3207
+                    *aulas(42, 1, 7, tipo="cubiculo"),  # 4201-4207
+                ],
+            },
+        ],
+    },
+    {
+        "codigo": "GOB",
+        "nombre": "Edificio de Gobierno",
+        "descripcion": "Personal administrativo, biblioteca y auditorio. Al sur del campus.",
+        "latitud": 19.5036,
+        "longitud": -99.1464,
+        "pisos": [
+            {
+                "numero": 0,
+                "nombre": "Planta Baja",
+                "aulas": [
+                    {"codigo": "GOB-CUB", "nombre": "Cubículos de Gobierno", "tipo": "administracion"},
+                    {"codigo": "GOB-BIB", "nombre": "Biblioteca", "tipo": "biblioteca"},
+                    {"codigo": "GOB-AUD", "nombre": "Auditorio", "tipo": "auditorio"},
+                ],
+            },
         ],
     },
 ]
 
 
+# --- Implementación del seed ------------------------------------------------
 def _seed_usuarios(session) -> None:
     for datos in USUARIOS_SEMILLA:
         existe = session.scalar(select(Usuario).where(Usuario.correo == datos["correo"]))
@@ -166,27 +281,29 @@ def _seed_ubicaciones_y_aps(session) -> None:
                 session.add(piso)
                 session.flush()
 
-            for idx, codigo_aula in enumerate(piso_data["aulas"]):
+            for idx, aula_data in enumerate(piso_data["aulas"]):
                 aula = session.scalar(
-                    select(Aula).where(Aula.piso_id == piso.id, Aula.codigo == codigo_aula)
+                    select(Aula).where(
+                        Aula.piso_id == piso.id, Aula.codigo == aula_data["codigo"]
+                    )
                 )
                 if not aula:
                     aula = Aula(
                         piso_id=piso.id,
-                        codigo=codigo_aula,
-                        nombre=codigo_aula,
-                        tipo="laboratorio" if "LAB" in codigo_aula else "aula",
+                        codigo=aula_data["codigo"],
+                        nombre=aula_data.get("nombre"),
+                        tipo=aula_data.get("tipo", "aula"),
                     )
                     session.add(aula)
                     session.flush()
 
-                ap_codigo = f"AP-{edif_data['codigo']}-{piso_data['numero']}-{codigo_aula}"
+                ap_codigo = f"AP-{edif_data['codigo']}-{aula_data['codigo']}"
                 if session.scalar(select(AccessPoint).where(AccessPoint.codigo == ap_codigo)):
                     continue
                 session.add(
                     AccessPoint(
                         codigo=ap_codigo,
-                        nombre=f"AP {codigo_aula}",
+                        nombre=f"AP {aula_data['codigo']}",
                         modelo="Cisco Catalyst 9120AX",
                         aula_id=aula.id,
                         banda=bandas[idx % len(bandas)],

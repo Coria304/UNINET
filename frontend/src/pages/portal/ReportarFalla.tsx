@@ -6,7 +6,7 @@ import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
 import { useCreateTicket } from "@/hooks/useTickets";
 import { useEdificios } from "@/hooks/useUbicaciones";
 import type { Edificio, TipoFalla } from "@/lib/types";
-import { TIPO_FALLA_LABEL } from "@/lib/types";
+import { TIPO_FALLA_LABEL, formatAulaLabel } from "@/lib/types";
 
 // Centroide aproximado de ESCOM-IPN (Zacatenco). Se usa si los edificios
 // del seed no traen coordenadas; los seedeados sí las traen.
@@ -195,7 +195,7 @@ function ReportarFalla() {
               <option value="">— Opcional —</option>
               {pisoSeleccionado?.aulas.map((a) => (
                 <option key={a.id} value={a.id}>
-                  {a.codigo}
+                  {formatAulaLabel(a)}
                 </option>
               ))}
             </select>
