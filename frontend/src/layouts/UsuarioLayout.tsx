@@ -1,5 +1,6 @@
 import { NavLink, Outlet } from "react-router-dom";
 
+import NotificationBell from "@/components/NotificationBell";
 import { useLogout } from "@/hooks/useAuth";
 import { useAuthStore } from "@/stores/authStore";
 
@@ -28,8 +29,9 @@ function UsuarioLayout() {
             </NavLink>
           ))}
         </nav>
-        <div className="text-sm">
-          <span className="mr-3">{usuario?.nombre_completo}</span>
+        <div className="flex items-center gap-3 text-sm">
+          <NotificationBell variant="onDark" />
+          <span>{usuario?.nombre_completo}</span>
           <button
             type="button"
             onClick={() => logoutMutation.mutate()}

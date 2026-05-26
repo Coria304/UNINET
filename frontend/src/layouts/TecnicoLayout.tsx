@@ -1,5 +1,6 @@
 import { NavLink, Outlet } from "react-router-dom";
 
+import NotificationBell from "@/components/NotificationBell";
 import { useLogout } from "@/hooks/useAuth";
 import { useAuthStore } from "@/stores/authStore";
 
@@ -41,8 +42,13 @@ function TecnicoLayout() {
           </button>
         </div>
       </aside>
-      <main className="flex-1 p-6 bg-slate-50">
-        <Outlet />
+      <main className="flex-1 bg-slate-50">
+        <div className="flex justify-end px-6 py-2 border-b border-slate-200 bg-white">
+          <NotificationBell variant="onLight" />
+        </div>
+        <div className="p-6">
+          <Outlet />
+        </div>
       </main>
     </div>
   );

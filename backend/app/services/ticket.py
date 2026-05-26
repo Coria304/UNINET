@@ -19,13 +19,14 @@ from app.models import (
     PrioridadTicket,
     RolUsuario,
     Ticket,
+    TipoNotificacion,
     Usuario,
 )
 from app.repositories.ticket import TicketRepository
 from app.repositories.ubicacion import AulaRepository, EdificioRepository
 from app.repositories.usuario import UsuarioRepository
 from app.schemas.ticket import TicketCreate, TicketUpdate
-from app.services import audit
+from app.services import audit, notificacion
 
 # Roles con permisos operativos sobre cualquier ticket.
 ROLES_OPERADORES = frozenset({RolUsuario.PERSONAL_TECNICO, RolUsuario.ADMINISTRADOR_TI})
@@ -148,6 +149,22 @@ def create_ticket(
         },
         ip_origen=ip,
     )
+
+    # Notifica al equipo de soporte (RF005). Best-effort: no rompe la
+    # creación si SMTP falla; el registro in-app queda igual.
+    notificacion.notify_operadores(
+        db,
+        tipo=TipoNotificacion.TICKET_CREADO,
+        titulo=f"Nuevo reporte: {payload.tipo_falla.value.replace('_', ' ')}",
+        mensaje=(
+            f"{reportante.nombre_completo} reportó una falla "
+            f"({payload.tipo_falla.value}). "
+            f"{payload.descripcion or 'Sin descripción adicional.'}"
+        ),
+        entidad_tipo="ticket",
+        entidad_id=ticket.id,
+    )
+
     db.commit()
     db.refresh(ticket)
     return ticket
@@ -202,7 +219,9 @@ def update_ticket(
         raise TicketError(TicketErrorCode.TICKET_NO_ENCONTRADO)
 
     estado_anterior = ticket.estado
+    asignado_anterior_id = ticket.asignado_a_id
     cambio_estado = False
+    asignado_nuevo: Usuario | None = None
 
     if payload.estado is not None and payload.estado != ticket.estado:
         if payload.estado not in TRANSICIONES_VALIDAS[ticket.estado]:
@@ -224,6 +243,8 @@ def update_ticket(
                 "Solo se puede asignar a personal técnico o admin TI.",
             )
         ticket.asignado_a_id = payload.asignado_a_id
+        if asignado.id != asignado_anterior_id:
+            asignado_nuevo = asignado
 
     if payload.prioridad is not None:
         ticket.prioridad = payload.prioridad
@@ -251,6 +272,40 @@ def update_ticket(
         },
         ip_origen=ip,
     )
+
+    # Notificaciones (RF005) — el reportante quiere saber del progreso y
+    # el técnico recién asignado debería enterarse de que tiene trabajo.
+    reportante = UsuarioRepository(db).get(ticket.reportante_id)
+    if cambio_estado and reportante is not None:
+        notificacion.create(
+            db,
+            usuario=reportante,
+            tipo=TipoNotificacion.TICKET_ESTADO_CAMBIO,
+            titulo=f"Tu reporte ahora está '{ticket.estado.value.replace('_', ' ')}'",
+            mensaje=(
+                f"El estado de tu reporte cambió de '{estado_anterior.value}' a "
+                f"'{ticket.estado.value}'."
+                + (f" Nota del técnico: {payload.comentario}" if payload.comentario else "")
+            ),
+            entidad_tipo="ticket",
+            entidad_id=ticket.id,
+        )
+    if asignado_nuevo is not None and asignado_nuevo.id != current_user.id:
+        # El técnico que se asigna a sí mismo no necesita notificación; sí los
+        # demás casos (un admin reasignando, otro técnico tomando el ticket).
+        notificacion.create(
+            db,
+            usuario=asignado_nuevo,
+            tipo=TipoNotificacion.TICKET_ASIGNADO,
+            titulo="Se te asignó un ticket",
+            mensaje=(
+                f"{current_user.nombre_completo} te asignó el ticket "
+                f"({ticket.tipo_falla.value.replace('_', ' ')})."
+            ),
+            entidad_tipo="ticket",
+            entidad_id=ticket.id,
+        )
+
     db.commit()
     db.refresh(ticket)
     # Re-cargar con relaciones para el response.

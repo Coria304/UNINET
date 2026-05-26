@@ -14,6 +14,7 @@ from app.models.base import Base, TimestampsMixin, UUIDPrimaryKeyMixin, pg_enum
 
 if TYPE_CHECKING:
     from app.models.audit_log import AuditLog
+    from app.models.notificacion import Notificacion
     from app.models.ticket import Ticket
 
 
@@ -56,3 +57,7 @@ class Usuario(UUIDPrimaryKeyMixin, TimestampsMixin, Base):
         foreign_keys="Ticket.asignado_a_id",
     )
     audit_logs: Mapped[list[AuditLog]] = relationship(back_populates="usuario")
+    notificaciones: Mapped[list[Notificacion]] = relationship(
+        back_populates="usuario",
+        cascade="all, delete-orphan",
+    )

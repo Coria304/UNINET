@@ -10,6 +10,7 @@ from app.models.audit_log import AuditLog
 from app.models.base import Base
 from app.models.configuracion import ConfiguracionUmbrales
 from app.models.metrica import MetricaMonitoreo
+from app.models.notificacion import Notificacion, TipoNotificacion
 from app.models.reporte import ReporteSLA, TipoReporte
 from app.models.speedtest import SpeedtestResultado
 from app.models.ticket import (
@@ -34,6 +35,7 @@ __all__ = [
     "EstadoAlerta",
     "EstadoTicket",
     "MetricaMonitoreo",
+    "Notificacion",
     "Piso",
     "PrioridadTicket",
     "ReporteSLA",
@@ -43,6 +45,7 @@ __all__ = [
     "TicketHistorico",
     "TipoAlerta",
     "TipoFalla",
+    "TipoNotificacion",
     "TipoReporte",
     "Usuario",
 ]

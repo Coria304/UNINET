@@ -115,6 +115,70 @@ export interface Edificio {
   pisos: Piso[];
 }
 
+// ---------------------------------------------------------------------------
+// Reportes admin (RF007)
+// ---------------------------------------------------------------------------
+export interface ContadorPorEstado {
+  activo: number;
+  en_proceso: number;
+  resuelto: number;
+}
+
+export interface BucketEdificio {
+  edificio_id: string;
+  codigo: string;
+  nombre: string;
+  total: number;
+}
+
+export interface BucketTipoFalla {
+  tipo: TipoFalla;
+  total: number;
+}
+
+export interface PuntoSerieTemporal {
+  fecha: string; // ISO
+  total: number;
+}
+
+export interface ResumenReporte {
+  desde: string;
+  hasta: string;
+  total: number;
+  por_estado: ContadorPorEstado;
+  mttr_horas: number | null;
+  sin_asignar: number;
+  top_edificios: BucketEdificio[];
+  top_tipos: BucketTipoFalla[];
+  serie_temporal: PuntoSerieTemporal[];
+  granularidad: "day" | "week" | "month";
+}
+
+// ---------------------------------------------------------------------------
+// Notificaciones (RF005)
+// ---------------------------------------------------------------------------
+export type TipoNotificacion =
+  | "ticket_creado"
+  | "ticket_asignado"
+  | "ticket_estado_cambio";
+
+export interface Notificacion {
+  id: string;
+  tipo: TipoNotificacion;
+  titulo: string;
+  mensaje: string;
+  entidad_tipo: string | null;
+  entidad_id: string | null;
+  leida: boolean;
+  leida_at: string | null;
+  created_at: string;
+}
+
+export interface NotificacionListResponse {
+  items: Notificacion[];
+  total_no_leidas: number;
+}
+
 /**
  * Etiquetas legibles para el campo `tipo` del aula. Coinciden con los
  * tipos que emite seeds/seed_escom.py. Cualquier tipo no listado se

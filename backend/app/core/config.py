@@ -31,6 +31,16 @@ class Settings(BaseSettings):
 
     CORS_ORIGINS: list[str] = ["http://localhost:5173"]
 
+    # SMTP opcional para notificaciones por correo (RF005). Si SMTP_HOST
+    # está vacío, las notificaciones se entregan sólo in-app y el correo
+    # se loggea (mismo patrón que el código MFA en dev).
+    SMTP_HOST: str | None = None
+    SMTP_PORT: int = 587
+    SMTP_USERNAME: str | None = None
+    SMTP_PASSWORD: str | None = None
+    SMTP_FROM: str = "noreply@uninet.escom.ipn.mx"
+    SMTP_USE_TLS: bool = True
+
     @field_validator("CORS_ORIGINS", mode="before")
     @classmethod
     def split_cors(cls, value: object) -> object:
@@ -41,6 +51,10 @@ class Settings(BaseSettings):
     @property
     def is_production(self) -> bool:
         return self.ENVIRONMENT == "production"
+
+    @property
+    def smtp_enabled(self) -> bool:
+        return bool(self.SMTP_HOST)
 
 
 @lru_cache

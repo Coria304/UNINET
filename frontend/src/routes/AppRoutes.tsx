@@ -5,6 +5,7 @@ import AdminLayout from "@/layouts/AdminLayout";
 import TecnicoLayout from "@/layouts/TecnicoLayout";
 import UsuarioLayout from "@/layouts/UsuarioLayout";
 import AdminInicio from "@/pages/admin/Inicio";
+import Reportes from "@/pages/admin/Reportes";
 import TicketsAdmin from "@/pages/admin/TicketsAdmin";
 import Login from "@/pages/Login";
 import NotFound from "@/pages/NotFound";
@@ -54,6 +55,7 @@ function AppRoutes() {
       >
         <Route index element={<AdminInicio />} />
         <Route path="tickets" element={<TicketsAdmin />} />
+        <Route path="reportes" element={<Reportes />} />
       </Route>
 
       <Route

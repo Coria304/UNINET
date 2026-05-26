@@ -33,6 +33,12 @@ os.environ["DATABASE_URL"] = (
     f"@{_PG_HOST}:{_PG_PORT}/{_TEST_DB_NAME}"
 )
 
+# Los tests nunca deben mandar correo real. Borramos cualquier
+# SMTP_HOST heredado del .env de dev para que el dispatcher caiga
+# al branch "log only".
+for _smtp_var in ("SMTP_HOST", "SMTP_USERNAME", "SMTP_PASSWORD"):
+    os.environ.pop(_smtp_var, None)
+
 
 def _ensure_test_database() -> None:
     """Crea la BD de tests si no existe y aplica las extensiones requeridas."""
