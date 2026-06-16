@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import {
+  useDeleteNotificacion,
   useMarkAllNotificacionesLeidas,
   useMarkNotificacionLeida,
   useNotificaciones,
@@ -56,6 +57,7 @@ function NotificationBell({ variant = "onDark" }: Props) {
   const { data } = useNotificaciones();
   const markRead = useMarkNotificacionLeida();
   const markAll = useMarkAllNotificacionesLeidas();
+  const deleteOne = useDeleteNotificacion();
 
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -84,8 +86,8 @@ function NotificationBell({ variant = "onDark" }: Props) {
   };
 
   const isDarkBg = variant === "onDark";
-  const iconColor = isDarkBg ? "text-white" : "text-slate-700";
-  const hoverBg = isDarkBg ? "hover:bg-white/15" : "hover:bg-slate-100";
+  const iconColor = isDarkBg ? "text-white" : "text-[#111111]";
+  const hoverBg = isDarkBg ? "hover:bg-white/15" : "hover:bg-[#F7F6F3]";
   const ringColor = isDarkBg ? "focus:ring-white/30" : "focus:ring-slate-300";
 
   return (
@@ -118,14 +120,14 @@ function NotificationBell({ variant = "onDark" }: Props) {
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-2 w-80 max-h-96 overflow-y-auto bg-white text-slate-900 rounded-lg shadow-lg ring-1 ring-black/5 z-50">
-          <div className="flex items-center justify-between px-4 py-2 border-b border-slate-100">
+        <div className="absolute right-0 mt-2 w-80 max-h-96 overflow-y-auto bg-white text-[#111111] rounded-lg border border-[#EAEAEA] z-50">
+          <div className="flex items-center justify-between px-4 py-2 border-b border-[#EAEAEA]">
             <span className="font-semibold text-sm">Notificaciones</span>
             {totalNoLeidas > 0 && (
               <button
                 type="button"
                 onClick={() => markAll.mutate()}
-                className="text-xs text-brand-600 hover:underline"
+                className="text-xs text-[#111111] underline hover:no-underline"
                 disabled={markAll.isPending}
               >
                 Marcar todas como leídas
@@ -133,36 +135,41 @@ function NotificationBell({ variant = "onDark" }: Props) {
             )}
           </div>
           {items.length === 0 ? (
-            <p className="px-4 py-6 text-sm text-slate-500 text-center">
-              No tienes notificaciones.
-            </p>
+            <div className="px-4 py-8 text-center">
+              <div className="text-2xl mb-2">○</div>
+              <p className="text-sm text-[#787774]">Sin notificaciones nuevas.</p>
+            </div>
           ) : (
             <ul>
               {items.map((n) => (
-                <li key={n.id}>
+                <li key={n.id} className={`group flex items-start border-b border-[#EAEAEA] border-l-2 hover:bg-[#F7F6F3] ${
+                  n.leida ? "opacity-60 border-transparent" : "border-[#111111]"
+                }`}>
                   <button
                     type="button"
                     onClick={() => handleClickItem(n)}
-                    className={`w-full text-left px-4 py-3 hover:bg-slate-50 border-b border-slate-100 ${
-                      n.leida ? "opacity-60" : ""
-                    }`}
+                    className="flex-1 text-left px-4 py-3 min-w-0"
                   >
-                    <div className="flex items-start gap-2">
-                      {!n.leida && (
-                        <span className="mt-1.5 h-2 w-2 bg-brand-500 rounded-full flex-shrink-0" />
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium truncate">
-                          {n.titulo}
-                        </div>
-                        <div className="text-xs text-slate-600 line-clamp-2 mt-0.5">
-                          {n.mensaje}
-                        </div>
-                        <div className="text-[11px] text-slate-400 mt-1">
-                          {fmt(n.created_at)}
-                        </div>
-                      </div>
+                    <div className="text-sm font-medium truncate">{n.titulo}</div>
+                    <div className="text-xs text-[#787774] line-clamp-2 mt-0.5">
+                      {n.mensaje}
                     </div>
+                    <div className="text-[11px] text-[#AAAAAA] mt-1">
+                      {fmt(n.created_at)}
+                    </div>
+                  </button>
+                  <button
+                    type="button"
+                    aria-label="Eliminar notificación"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      deleteOne.mutate(n.id);
+                    }}
+                    className="shrink-0 p-3 text-[#AAAAAA] hover:text-[#111111] opacity-0 group-hover:opacity-100 transition-opacity duration-150"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="h-3.5 w-3.5">
+                      <path d="M5.28 4.22a.75.75 0 0 0-1.06 1.06L6.94 8l-2.72 2.72a.75.75 0 1 0 1.06 1.06L8 9.06l2.72 2.72a.75.75 0 1 0 1.06-1.06L9.06 8l2.72-2.72a.75.75 0 0 0-1.06-1.06L8 6.94 5.28 4.22Z" />
+                    </svg>
                   </button>
                 </li>
               ))}

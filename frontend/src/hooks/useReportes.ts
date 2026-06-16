@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 
 import {
   reportesApi,
@@ -20,5 +20,6 @@ export function useMapaCalor(filters: MapaCalorFilters = {}) {
     queryKey: ["reportes", "mapa-calor", filters],
     queryFn: () => reportesApi.mapaCalor(filters),
     refetchInterval: 60_000,
+    placeholderData: keepPreviousData,
   });
 }

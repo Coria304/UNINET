@@ -48,16 +48,16 @@ function TicketsTable({
 
   if (tickets.length === 0) {
     return (
-      <p className="bg-white rounded-lg shadow p-6 text-center text-slate-500">
+      <p className="bg-white rounded-lg border border-[#EAEAEA] p-6 text-center text-[#787774]">
         No hay tickets que coincidan con el filtro.
       </p>
     );
   }
 
   return (
-    <div className="overflow-x-auto bg-white rounded-lg shadow">
+    <div className="overflow-x-auto bg-white rounded-lg border border-[#EAEAEA]">
       <table className="min-w-full text-sm">
-        <thead className="text-left text-slate-500 border-b border-slate-200">
+        <thead className="text-left text-[#787774] border-b border-[#EAEAEA]">
           <tr>
             <th className="px-4 py-2 font-medium">Tipo</th>
             <th className="px-4 py-2 font-medium">Ubicación</th>
@@ -77,7 +77,7 @@ function TicketsTable({
             );
             const RowWrapper = detailBasePath ? "tr" : "tr";
             return (
-              <RowWrapper key={t.id} className="border-b border-slate-100 hover:bg-slate-50">
+              <RowWrapper key={t.id} className="border-b border-[#EAEAEA] hover:bg-[#F7F6F3]">
                 <td className="px-4 py-2">
                   {detailBasePath ? (
                     <Link
@@ -92,7 +92,7 @@ function TicketsTable({
                 </td>
                 <td className="px-4 py-2">{ubicacion}</td>
                 {showReportante && (
-                  <td className="px-4 py-2 text-slate-600">
+                  <td className="px-4 py-2 text-[#787774]">
                     {reportantes?.get(t.reportante_id) ?? t.reportante_id.slice(0, 8)}
                   </td>
                 )}
@@ -101,7 +101,7 @@ function TicketsTable({
                     {ESTADO_LABEL[t.estado]}
                   </span>
                 </td>
-                <td className="px-4 py-2 text-slate-500 whitespace-nowrap">
+                <td className="px-4 py-2 text-[#787774] whitespace-nowrap">
                   {formatFecha(t.created_at)}
                 </td>
               </RowWrapper>

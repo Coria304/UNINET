@@ -73,7 +73,7 @@ function SerieTemporal({
 
   if (puntos.length === 0) {
     return (
-      <p className="text-sm text-slate-500">
+      <p className="text-sm text-[#787774]">
         Sin tickets en el rango seleccionado.
       </p>
     );
@@ -89,12 +89,12 @@ function SerieTemporal({
             className="flex items-center gap-2 text-xs"
             aria-label={`${fmtFecha(p.fecha, granularidad)}: ${p.total} tickets`}
           >
-            <span className="w-20 text-slate-500">
+            <span className="w-20 text-[#787774]">
               {fmtFecha(p.fecha, granularidad)}
             </span>
-            <div className="flex-1 bg-slate-100 rounded h-3 overflow-hidden">
+            <div className="flex-1 bg-[#EAEAEA] rounded h-3 overflow-hidden">
               <div
-                className="bg-brand-500 h-full rounded"
+                className="bg-[#111111] h-full rounded"
                 style={{ width: `${pct}%` }}
               />
             </div>
@@ -119,20 +119,20 @@ function Resumen({ data }: { data: ResumenReporte }) {
   return (
     <>
       <section className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-        <Card label="Total" value={data.total} color="text-slate-800" />
+        <Card label="Total" value={data.total} color="text-[#111111]" />
         <Card label="Activos" value={data.por_estado.activo} color="text-amber-700" />
         <Card label="En proceso" value={data.por_estado.en_proceso} color="text-blue-700" />
         <Card label="Resueltos" value={data.por_estado.resuelto} color="text-emerald-700" />
         <Card
           label="MTTR"
           value={mttrTxt}
-          color="text-slate-800"
+          color="text-[#111111]"
           subtitle="tiempo medio de resolución"
         />
         <Card
           label="Sin asignar"
           value={data.sin_asignar}
-          color={data.sin_asignar > 0 ? "text-red-700" : "text-slate-800"}
+          color={data.sin_asignar > 0 ? "text-red-700" : "text-[#111111]"}
         />
       </section>
 
@@ -229,12 +229,12 @@ function Reportes() {
       <header className="flex items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-semibold">Reportes SLA</h2>
-          <p className="text-sm text-slate-500 mt-1">
+          <p className="text-sm text-[#787774] mt-1">
             Métricas agregadas del sistema de tickets.
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <div className="flex gap-1 bg-white border border-slate-200 rounded-lg p-0.5">
+          <div className="flex gap-1 bg-white border border-[#EAEAEA] rounded-lg p-0.5">
             {RANGOS.map((r, i) => (
               <button
                 key={r.label}
@@ -242,8 +242,8 @@ function Reportes() {
                 onClick={() => setRangoIdx(i)}
                 className={`px-3 py-1.5 text-sm rounded ${
                   i === rangoIdx
-                    ? "bg-brand-500 text-white"
-                    : "text-slate-600 hover:bg-slate-100"
+                    ? "bg-[#111111] text-white"
+                    : "text-[#787774] hover:bg-[#F7F6F3]"
                 }`}
               >
                 {r.label}
@@ -261,7 +261,7 @@ function Reportes() {
         </div>
       </header>
 
-      {isLoading && <p className="text-slate-500">Cargando métricas…</p>}
+      {isLoading && <p className="text-[#787774]">Cargando métricas…</p>}
       {isError && (
         <p className="text-red-600">No se pudieron cargar los reportes.</p>
       )}

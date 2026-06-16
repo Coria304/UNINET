@@ -37,3 +37,11 @@ export function useMarkAllNotificacionesLeidas() {
     onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
   });
 }
+
+export function useDeleteNotificacion() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => notificacionesApi.deleteOne(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
+  });
+}

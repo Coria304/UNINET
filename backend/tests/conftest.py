@@ -80,7 +80,7 @@ from app.core.database import SessionLocal, engine
 from app.core.redis import get_redis
 from app.core.security import hash_password
 from app.main import app
-from app.models import Aula, Base, Edificio, Piso, RolUsuario, Usuario
+from app.models import AccessPoint, Aula, Base, BandaFrecuencia, Edificio, Piso, RolUsuario, Usuario
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -211,3 +211,20 @@ def edificio(db_session) -> Edificio:
     db_session.commit()
     db_session.refresh(edif)
     return edif
+
+
+@pytest.fixture
+def access_point(db_session, edificio: Edificio) -> AccessPoint:
+    """Access point activo en el aula del edificio de pruebas."""
+    aula = edificio.pisos[0].aulas[0]
+    ap = AccessPoint(
+        codigo="AP-TEST-01",
+        nombre="AP Test Piso 1",
+        aula_id=aula.id,
+        banda=BandaFrecuencia.DUAL,
+        activo=True,
+    )
+    db_session.add(ap)
+    db_session.commit()
+    db_session.refresh(ap)
+    return ap

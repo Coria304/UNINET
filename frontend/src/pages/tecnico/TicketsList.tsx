@@ -20,7 +20,7 @@ function TicketsList() {
       <header className="flex items-center justify-between gap-4">
         <h2 className="text-2xl font-semibold">Tickets</h2>
         <div className="flex items-center gap-2 text-sm">
-          <label htmlFor="filtro-estado" className="text-slate-500">
+          <label htmlFor="filtro-estado" className="text-[#787774]">
             Estado:
           </label>
           <select
@@ -39,7 +39,7 @@ function TicketsList() {
         </div>
       </header>
 
-      {isLoading && <p className="text-slate-500">Cargando…</p>}
+      {isLoading && <p className="text-[#787774]">Cargando…</p>}
 
       {tickets && (
         <TicketsTable

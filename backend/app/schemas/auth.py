@@ -34,3 +34,8 @@ class LoginResponseMFA(BaseModel):
 class MFAVerifyRequest(BaseModel):
     challenge_id: UUID
     code: str = Field(min_length=6, max_length=6, pattern=r"^\d{6}$")
+
+
+class CambiarPasswordRequest(BaseModel):
+    password_actual: str = Field(min_length=1, max_length=200)
+    password_nueva: str = Field(min_length=8, max_length=200)

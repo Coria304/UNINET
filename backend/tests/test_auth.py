@@ -122,3 +122,54 @@ def test_ca_rf009_3_admin_requiere_mfa_y_completa_flujo(
         headers={"Authorization": f"Bearer {payload['access_token']}"},
     )
     assert me_admin.status_code == 200
+
+
+# =====================================================================
+# GET /admin/tecnicos — lista de técnicos activos para asignación.
+# =====================================================================
+def test_admin_tecnicos_devuelve_lista(
+    client: TestClient,
+    admin: "Usuario",
+    tecnico: "Usuario",
+) -> None:
+    """El admin obtiene la lista de técnicos activos."""
+    from app.models import Usuario as _U  # noqa: F401 (evita import circular en tests)
+    login = client.post(
+        "/api/v1/auth/login",
+        json={"correo": admin.correo, "password": "Admin#2026"},
+    ).json()
+    verify = client.post(
+        "/api/v1/auth/mfa/verify",
+        json={"challenge_id": login["challenge_id"], "code": login["dev_code"]},
+    )
+    token = verify.json()["access_token"]
+
+    resp = client.get(
+        "/api/v1/admin/tecnicos",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert resp.status_code == 200
+    data = resp.json()
+    assert isinstance(data, list)
+    assert len(data) >= 1
+    # Todos son técnicos activos.
+    for t in data:
+        assert t["rol"] == "personal_tecnico"
+        assert t["activo"] is True
+
+
+def test_admin_tecnicos_requiere_rol_admin(
+    client: TestClient,
+    tecnico: "Usuario",
+) -> None:
+    """Un técnico no puede acceder al endpoint de listado de técnicos."""
+    login = client.post(
+        "/api/v1/auth/login",
+        json={"correo": tecnico.correo, "password": "Tecnico#2026"},
+    )
+    token = login.json()["access_token"]
+    resp = client.get(
+        "/api/v1/admin/tecnicos",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert resp.status_code == 403

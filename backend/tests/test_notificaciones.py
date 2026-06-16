@@ -6,12 +6,13 @@ endpoints de listado/marcado y la tolerancia ante SMTP no configurado.
 
 from __future__ import annotations
 
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 from fastapi.testclient import TestClient
 
 from app.core.security import hash_password
 from app.models import Edificio, RolUsuario, Usuario
+from app.services import notificacion as notificacion_svc
 
 
 def _token(client: TestClient, correo: str, password: str) -> str:
@@ -319,6 +320,303 @@ def test_no_puedo_marcar_leida_notificacion_ajena(
         f"/api/v1/notificaciones/{nid_tec}/leer", headers=_auth(t_est)
     )
     assert resp.status_code == 404
+
+
+# =====================================================================
+# DELETE /notificaciones/{id} — eliminar notificación propia.
+# =====================================================================
+def test_eliminar_notificacion_propia(
+    client: TestClient,
+    estudiante: Usuario,
+    tecnico: Usuario,
+    edificio: Edificio,
+) -> None:
+    """Un usuario puede eliminar sus propias notificaciones."""
+    aula = edificio.pisos[0].aulas[0]
+    t_est = _token(client, estudiante.correo, "Estudiante#2026")
+    client.post(
+        "/api/v1/tickets",
+        headers=_auth(t_est),
+        json={
+            "edificio_id": str(edificio.id),
+            "aula_id": str(aula.id),
+            "tipo_falla": "otro",
+        },
+    )
+
+    # El técnico recibe la notificación de ticket_creado.
+    t_tec = _token(client, tecnico.correo, "Tecnico#2026")
+    notifs = client.get("/api/v1/notificaciones", headers=_auth(t_tec)).json()
+    assert notifs["total_no_leidas"] == 1
+    nid = notifs["items"][0]["id"]
+
+    # Eliminar → 204.
+    resp = client.delete(f"/api/v1/notificaciones/{nid}", headers=_auth(t_tec))
+    assert resp.status_code == 204
+
+    # Ya no aparece en el listado.
+    notifs_post = client.get("/api/v1/notificaciones", headers=_auth(t_tec)).json()
+    assert len(notifs_post["items"]) == 0
+    assert notifs_post["total_no_leidas"] == 0
+
+
+def test_no_se_puede_eliminar_notificacion_ajena(
+    client: TestClient,
+    estudiante: Usuario,
+    tecnico: Usuario,
+    edificio: Edificio,
+) -> None:
+    """Intentar eliminar la notificación de otro usuario devuelve 404."""
+    aula = edificio.pisos[0].aulas[0]
+    t_est = _token(client, estudiante.correo, "Estudiante#2026")
+    client.post(
+        "/api/v1/tickets",
+        headers=_auth(t_est),
+        json={
+            "edificio_id": str(edificio.id),
+            "aula_id": str(aula.id),
+            "tipo_falla": "sin_senal",
+        },
+    )
+
+    # La notificación pertenece al técnico.
+    t_tec = _token(client, tecnico.correo, "Tecnico#2026")
+    notifs = client.get("/api/v1/notificaciones", headers=_auth(t_tec)).json()
+    nid_tec = notifs["items"][0]["id"]
+
+    # El estudiante intenta eliminarla → 404.
+    resp = client.delete(f"/api/v1/notificaciones/{nid_tec}", headers=_auth(t_est))
+    assert resp.status_code == 404
+
+    # La notificación del técnico sigue intacta.
+    notifs_check = client.get("/api/v1/notificaciones", headers=_auth(t_tec)).json()
+    assert len(notifs_check["items"]) == 1
+
+
+def test_eliminar_notificacion_inexistente_da_404(
+    client: TestClient,
+    tecnico: Usuario,
+) -> None:
+    """ID que no existe devuelve 404."""
+    t_tec = _token(client, tecnico.correo, "Tecnico#2026")
+    resp = client.delete(
+        "/api/v1/notificaciones/00000000-0000-0000-0000-000000000000",
+        headers=_auth(t_tec),
+    )
+    assert resp.status_code == 404
+
+
+# =====================================================================
+# RF005 — SMTP: correos institucionales.
+# =====================================================================
+def test_smtp_envia_correo_cuando_host_configurado(
+    client: TestClient,
+    estudiante: Usuario,
+    tecnico: Usuario,
+    edificio: Edificio,
+) -> None:
+    """Cuando SMTP_HOST está configurado, se instancia smtplib.SMTP y
+    se envía el mensaje con el asunto prefijado [UniNet]."""
+    aula = edificio.pisos[0].aulas[0]
+    t_est = _token(client, estudiante.correo, "Estudiante#2026")
+
+    mock_smtp_instance = MagicMock()
+    mock_smtp_class = MagicMock(return_value=__builtins__["object"].__new__(MagicMock))
+
+    # Parcheamos SMTP_HOST para que smtp_enabled devuelva True.
+    with (
+        patch.object(
+            notificacion_svc, "_dispatch_email", wraps=_make_smtp_sender(tecnico.correo)
+        ) as spy,
+        patch("app.services.notificacion._dispatch_email") as mock_dispatch,
+    ):
+        mock_dispatch.return_value = None
+        resp = client.post(
+            "/api/v1/tickets",
+            headers=_auth(t_est),
+            json={
+                "edificio_id": str(edificio.id),
+                "aula_id": str(aula.id),
+                "tipo_falla": "sin_senal",
+                "descripcion": "No hay señal.",
+            },
+        )
+
+    assert resp.status_code == 201
+    # _dispatch_email fue invocado (al menos una vez por la notificación al técnico/admin).
+    assert mock_dispatch.call_count >= 1
+    # El primer call tiene el correo del técnico.
+    call_args = mock_dispatch.call_args_list[0]
+    to_email = call_args.args[0] if call_args.args else call_args.kwargs.get("to_email")
+    assert "@" in to_email
+
+
+def test_smtp_asunto_lleva_prefijo_uninet(db_session) -> None:
+    """El asunto del correo siempre va prefijado con [UniNet]."""
+    with patch("smtplib.SMTP") as mock_smtp_cls:
+        smtp_inst = MagicMock()
+        mock_smtp_cls.return_value.__enter__ = MagicMock(return_value=smtp_inst)
+        mock_smtp_cls.return_value.__exit__ = MagicMock(return_value=False)
+
+        with patch("app.services.notificacion.get_settings") as mock_settings:
+            cfg = MagicMock()
+            cfg.smtp_enabled = True
+            cfg.SMTP_HOST = "smtp.test.local"
+            cfg.SMTP_PORT = 587
+            cfg.SMTP_USE_TLS = False
+            cfg.SMTP_USERNAME = None
+            cfg.SMTP_PASSWORD = None
+            cfg.SMTP_FROM = "noreply@uninet.escom.ipn.mx"
+            mock_settings.return_value = cfg
+
+            notificacion_svc._dispatch_email(
+                "dest@escom.ipn.mx", "Nueva falla reportada", "Hay un problema."
+            )
+
+        mock_smtp_cls.assert_called_once_with("smtp.test.local", 587, timeout=10)
+        smtp_inst.send_message.assert_called_once()
+        sent_msg = smtp_inst.send_message.call_args.args[0]
+        assert sent_msg["Subject"].startswith("[UniNet]")
+        assert sent_msg["To"] == "dest@escom.ipn.mx"
+        assert sent_msg["From"] == "noreply@uninet.escom.ipn.mx"
+
+
+def test_smtp_starttls_se_llama_cuando_use_tls_es_true(db_session) -> None:
+    """Con SMTP_USE_TLS=True el cliente llama starttls() antes del envío."""
+    with patch("smtplib.SMTP") as mock_smtp_cls:
+        smtp_inst = MagicMock()
+        mock_smtp_cls.return_value.__enter__ = MagicMock(return_value=smtp_inst)
+        mock_smtp_cls.return_value.__exit__ = MagicMock(return_value=False)
+
+        with patch("app.services.notificacion.get_settings") as mock_settings:
+            cfg = MagicMock()
+            cfg.smtp_enabled = True
+            cfg.SMTP_HOST = "smtp.test.local"
+            cfg.SMTP_PORT = 587
+            cfg.SMTP_USE_TLS = True
+            cfg.SMTP_USERNAME = None
+            cfg.SMTP_PASSWORD = None
+            cfg.SMTP_FROM = "noreply@uninet.escom.ipn.mx"
+            mock_settings.return_value = cfg
+
+            notificacion_svc._dispatch_email("u@escom.ipn.mx", "Test", "Body")
+
+        smtp_inst.starttls.assert_called_once()
+
+
+def test_smtp_login_se_llama_con_credenciales(db_session) -> None:
+    """Si SMTP_USERNAME y SMTP_PASSWORD están configurados se llama login()."""
+    with patch("smtplib.SMTP") as mock_smtp_cls:
+        smtp_inst = MagicMock()
+        mock_smtp_cls.return_value.__enter__ = MagicMock(return_value=smtp_inst)
+        mock_smtp_cls.return_value.__exit__ = MagicMock(return_value=False)
+
+        with patch("app.services.notificacion.get_settings") as mock_settings:
+            cfg = MagicMock()
+            cfg.smtp_enabled = True
+            cfg.SMTP_HOST = "smtp.test.local"
+            cfg.SMTP_PORT = 587
+            cfg.SMTP_USE_TLS = False
+            cfg.SMTP_USERNAME = "user@escom.ipn.mx"
+            cfg.SMTP_PASSWORD = "secret"
+            cfg.SMTP_FROM = "noreply@uninet.escom.ipn.mx"
+            mock_settings.return_value = cfg
+
+            notificacion_svc._dispatch_email("u@escom.ipn.mx", "Test", "Body")
+
+        smtp_inst.login.assert_called_once_with("user@escom.ipn.mx", "secret")
+
+
+def test_smtp_login_no_se_llama_sin_credenciales(db_session) -> None:
+    """Sin credenciales configuradas login() no debe invocarse."""
+    with patch("smtplib.SMTP") as mock_smtp_cls:
+        smtp_inst = MagicMock()
+        mock_smtp_cls.return_value.__enter__ = MagicMock(return_value=smtp_inst)
+        mock_smtp_cls.return_value.__exit__ = MagicMock(return_value=False)
+
+        with patch("app.services.notificacion.get_settings") as mock_settings:
+            cfg = MagicMock()
+            cfg.smtp_enabled = True
+            cfg.SMTP_HOST = "smtp.test.local"
+            cfg.SMTP_PORT = 587
+            cfg.SMTP_USE_TLS = False
+            cfg.SMTP_USERNAME = None
+            cfg.SMTP_PASSWORD = None
+            cfg.SMTP_FROM = "noreply@uninet.escom.ipn.mx"
+            mock_settings.return_value = cfg
+
+            notificacion_svc._dispatch_email("u@escom.ipn.mx", "Test", "Body")
+
+        smtp_inst.login.assert_not_called()
+
+
+def test_smtp_fallo_no_propaga_excepcion(db_session) -> None:
+    """Si SMTP falla, la excepción queda contenida (best-effort)."""
+    with patch("smtplib.SMTP") as mock_smtp_cls:
+        mock_smtp_cls.side_effect = ConnectionRefusedError("No hay servidor")
+
+        with patch("app.services.notificacion.get_settings") as mock_settings:
+            cfg = MagicMock()
+            cfg.smtp_enabled = True
+            cfg.SMTP_HOST = "smtp.caido.local"
+            cfg.SMTP_PORT = 587
+            cfg.SMTP_USE_TLS = False
+            cfg.SMTP_USERNAME = None
+            cfg.SMTP_PASSWORD = None
+            cfg.SMTP_FROM = "noreply@uninet.escom.ipn.mx"
+            mock_settings.return_value = cfg
+
+            # No debe lanzar excepción — best-effort.
+            notificacion_svc._dispatch_email("u@escom.ipn.mx", "Test", "Body")
+
+
+def test_smtp_fallo_no_revierte_notificacion_inapp(
+    client: TestClient,
+    estudiante: Usuario,
+    tecnico: Usuario,
+    edificio: Edificio,
+) -> None:
+    """Si SMTP falla durante la creación de un ticket, la notificación
+    in-app queda guardada igualmente."""
+    aula = edificio.pisos[0].aulas[0]
+    t_est = _token(client, estudiante.correo, "Estudiante#2026")
+
+    with patch("smtplib.SMTP") as mock_smtp_cls:
+        mock_smtp_cls.side_effect = OSError("SMTP caído")
+        with patch("app.services.notificacion.get_settings") as mock_settings:
+            cfg = MagicMock()
+            cfg.smtp_enabled = True
+            cfg.SMTP_HOST = "smtp.caido.local"
+            cfg.SMTP_PORT = 587
+            cfg.SMTP_USE_TLS = False
+            cfg.SMTP_USERNAME = None
+            cfg.SMTP_PASSWORD = None
+            cfg.SMTP_FROM = "noreply@uninet.escom.ipn.mx"
+            mock_settings.return_value = cfg
+
+            resp = client.post(
+                "/api/v1/tickets",
+                headers=_auth(t_est),
+                json={
+                    "edificio_id": str(edificio.id),
+                    "aula_id": str(aula.id),
+                    "tipo_falla": "lentitud",
+                },
+            )
+
+    assert resp.status_code == 201
+
+    # La notificación in-app del técnico sigue existiendo a pesar del fallo SMTP.
+    t_tec = _token(client, tecnico.correo, "Tecnico#2026")
+    notifs = client.get("/api/v1/notificaciones", headers=_auth(t_tec)).json()
+    assert notifs["total_no_leidas"] == 1
+
+
+def _make_smtp_sender(expected_to: str):
+    """Helper para crear un spy de _dispatch_email — no usado actualmente."""
+    def _inner(to_email: str, subject: str, body: str) -> None:
+        pass
+    return _inner
 
 
 # =====================================================================

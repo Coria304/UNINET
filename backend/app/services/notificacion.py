@@ -90,6 +90,21 @@ def notify_operadores(
     return len(operadores)
 
 
+def send_credentials_email(correo: str, nombre: str, password: str) -> None:
+    """Envía las credenciales iniciales al nuevo usuario (best-effort)."""
+    subject = "Bienvenido a UniNet Connect — Tus credenciales de acceso"
+    body = (
+        f"Hola {nombre},\n\n"
+        "Tu cuenta en UniNet Connect ha sido creada exitosamente.\n\n"
+        f"  Correo:              {correo}\n"
+        f"  Contraseña inicial:  {password}\n\n"
+        "Por seguridad, cambia tu contraseña en tu primer inicio de sesión "
+        "desde el menú de tu perfil.\n\n"
+        "UniNet Connect — ESCOM, IPN"
+    )
+    _dispatch_email(correo, subject, body)
+
+
 def _dispatch_email(to_email: str, subject: str, body: str) -> None:
     """Envía el correo si SMTP está configurado. No propaga errores."""
     settings = get_settings()

@@ -21,10 +21,6 @@ interface Props {
   edificios?: Edificio[];
 }
 
-/**
- * Bloque de solo lectura compartido entre la vista del técnico
- * (con acciones encima) y la del estudiante (sin acciones).
- */
 function TicketSummary({ ticket, edificios }: Props) {
   const edif = edificios?.find((e) => e.id === ticket.edificio_id);
   const aula = edif?.pisos
@@ -32,75 +28,82 @@ function TicketSummary({ ticket, edificios }: Props) {
     .find((a) => a.id === ticket.aula_id);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <header className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-semibold">
+          <h2 className="text-2xl font-semibold text-[#111111]">
             {TIPO_FALLA_LABEL[ticket.tipo_falla]}
           </h2>
-          <p className="text-sm text-slate-500 mt-1">
-            Reportado por <strong>{ticket.reportante.nombre_completo}</strong> el{" "}
-            {fmt(ticket.created_at)}
+          <p className="text-sm text-[#787774] mt-1">
+            Reportado por{" "}
+            <strong className="text-[#111111]">{ticket.reportante.nombre_completo}</strong>{" "}
+            el {fmt(ticket.created_at)}
           </p>
         </div>
-        <span className={`text-sm px-3 py-1 rounded ${ESTADO_COLOR[ticket.estado]}`}>
+        <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${ESTADO_COLOR[ticket.estado]}`}>
           {ESTADO_LABEL[ticket.estado]}
         </span>
       </header>
 
-      <section className="bg-white rounded-lg shadow p-5 space-y-3">
-        <h3 className="font-semibold">Ubicación</h3>
-        <p className="text-sm">
-          <strong>{edif?.codigo ?? "?"}</strong> — {edif?.nombre ?? ""}
+      <div className="bg-white border border-[#EAEAEA] rounded-xl p-5 space-y-4">
+        <div>
+          <p className="text-xs text-[#AAAAAA] uppercase tracking-wider mb-1">Ubicación</p>
+          <p className="text-sm font-medium text-[#111111]">
+            Edificio <strong>{edif?.codigo ?? "?"}</strong>
+            {edif?.nombre ? ` — ${edif.nombre}` : ""}
+          </p>
           {aula && (
-            <>
-              <br />
-              <strong>{formatAulaLabel(aula)}</strong>
-            </>
+            <p className="text-sm text-[#787774] mt-0.5">{formatAulaLabel(aula)}</p>
           )}
-        </p>
+        </div>
+
         {ticket.descripcion && (
-          <>
-            <h3 className="font-semibold pt-3 border-t border-slate-100">
-              Descripción
-            </h3>
-            <p className="text-sm text-slate-700 whitespace-pre-wrap">
+          <div className="border-t border-[#EAEAEA] pt-4">
+            <p className="text-xs text-[#AAAAAA] uppercase tracking-wider mb-1">Descripción</p>
+            <p className="text-sm text-[#111111] whitespace-pre-wrap leading-relaxed">
               {ticket.descripcion}
             </p>
-          </>
+          </div>
         )}
-        {ticket.asignado_a && (
-          <>
-            <h3 className="font-semibold pt-3 border-t border-slate-100">
-              Atiende
-            </h3>
-            <p className="text-sm">{ticket.asignado_a.nombre_completo}</p>
-          </>
-        )}
-      </section>
 
-      <section className="bg-white rounded-lg shadow p-5">
-        <h3 className="font-semibold mb-3">Historial</h3>
-        <ol className="space-y-3 text-sm">
-          {ticket.historico.map((h) => (
-            <li key={h.id} className="flex items-start gap-3">
-              <span className="text-slate-400 whitespace-nowrap">
-                {fmt(h.fecha)}
-              </span>
-              <div>
-                <span className={`text-xs px-2 py-0.5 rounded ${ESTADO_COLOR[h.estado_nuevo]}`}>
-                  {h.estado_anterior
-                    ? `${ESTADO_LABEL[h.estado_anterior]} → ${ESTADO_LABEL[h.estado_nuevo]}`
-                    : ESTADO_LABEL[h.estado_nuevo]}
-                </span>
-                {h.comentario && (
-                  <p className="text-slate-600 mt-1">{h.comentario}</p>
-                )}
-              </div>
-            </li>
-          ))}
-        </ol>
-      </section>
+        {ticket.asignado_a && (
+          <div className="border-t border-[#EAEAEA] pt-4">
+            <p className="text-xs text-[#AAAAAA] uppercase tracking-wider mb-1">Atiende</p>
+            <p className="text-sm font-medium text-[#111111]">{ticket.asignado_a.nombre_completo}</p>
+          </div>
+        )}
+      </div>
+
+      {ticket.historico.length > 0 && (
+        <div className="bg-white border border-[#EAEAEA] rounded-xl p-5">
+          <p className="text-xs text-[#AAAAAA] uppercase tracking-wider mb-4">Historial</p>
+          <ol className="space-y-3">
+            {ticket.historico.map((h, i) => (
+              <li key={h.id} className="flex items-start gap-3 text-sm">
+                <div className="flex flex-col items-center mt-0.5 shrink-0">
+                  <div className={`h-2 w-2 rounded-full ${i === 0 ? "bg-[#111111]" : "bg-[#EAEAEA]"}`} />
+                  {i < ticket.historico.length - 1 && (
+                    <div className="w-px flex-1 bg-[#EAEAEA] mt-1 min-h-[1rem]" />
+                  )}
+                </div>
+                <div className="flex-1 min-w-0 pb-3">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${ESTADO_COLOR[h.estado_nuevo]}`}>
+                      {h.estado_anterior
+                        ? `${ESTADO_LABEL[h.estado_anterior]} → ${ESTADO_LABEL[h.estado_nuevo]}`
+                        : ESTADO_LABEL[h.estado_nuevo]}
+                    </span>
+                    <span className="text-xs text-[#AAAAAA]">{fmt(h.fecha)}</span>
+                  </div>
+                  {h.comentario && (
+                    <p className="text-[#787774] mt-1 leading-relaxed">{h.comentario}</p>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ol>
+        </div>
+      )}
     </div>
   );
 }

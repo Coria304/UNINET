@@ -25,4 +25,7 @@ export const notificacionesApi = {
     );
     return r.data;
   },
+  async deleteOne(id: string): Promise<void> {
+    await api.delete(`/notificaciones/${id}`);
+  },
 };

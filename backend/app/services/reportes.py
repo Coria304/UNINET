@@ -9,6 +9,7 @@ independientes sin tocar el frontend gracias al schema versionado.
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
+from uuid import UUID
 
 from sqlalchemy import desc, func, select
 from sqlalchemy.orm import Session
@@ -169,14 +170,26 @@ def generar_mapa_calor(
     *,
     desde: datetime | None = None,
     hasta: datetime | None = None,
+    edificio_id: UUID | None = None,
 ) -> MapaCalorResponse:
     """Densidad de tickets por edificio para el heatmap (RF003).
 
     Devuelve solo edificios con coordenadas geográficas — un edificio sin
     lat/lon no puede dibujarse en el mapa, así que lo omitimos. El campo
     `total` se usa como "peso" para la intensidad del calor.
+
+    Si `edificio_id` está presente, filtra la consulta a ese edificio.
     """
     desde, hasta = _normalizar_rango(desde, hasta)
+
+    conditions = [
+        Ticket.created_at >= desde,
+        Ticket.created_at <= hasta,
+        Edificio.latitud.isnot(None),
+        Edificio.longitud.isnot(None),
+    ]
+    if edificio_id is not None:
+        conditions.append(Edificio.id == edificio_id)
 
     rows = db.execute(
         select(
@@ -188,12 +201,7 @@ def generar_mapa_calor(
             func.count(Ticket.id).label("total"),
         )
         .join(Ticket, Ticket.edificio_id == Edificio.id)
-        .where(
-            Ticket.created_at >= desde,
-            Ticket.created_at <= hasta,
-            Edificio.latitud.isnot(None),
-            Edificio.longitud.isnot(None),
-        )
+        .where(*conditions)
         .group_by(
             Edificio.id, Edificio.codigo, Edificio.nombre, Edificio.latitud, Edificio.longitud
         )

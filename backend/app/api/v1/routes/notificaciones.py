@@ -68,3 +68,24 @@ def marcar_todas_leidas(
     actualizadas = repo.mark_all_read(current_user.id)
     db.commit()
     return {"actualizadas": actualizadas}
+
+
+@router.delete(
+    "/{notificacion_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Elimina una notificación del usuario actual",
+)
+def eliminar(
+    notificacion_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: Usuario = Depends(get_current_user),
+) -> None:
+    repo = NotificacionRepository(db)
+    notif = repo.get(notificacion_id)
+    if notif is None or notif.usuario_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Notificación no encontrada.",
+        )
+    repo.delete(notif)
+    db.commit()

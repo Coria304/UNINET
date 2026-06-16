@@ -5,6 +5,7 @@ Sólo accesibles al rol ADMINISTRADOR_TI: contienen métricas operacionales
 """
 
 from datetime import datetime
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query
 from fastapi.responses import Response
@@ -80,9 +81,10 @@ def reporte_pdf(
 def mapa_calor(
     desde: datetime | None = Query(default=None, description="ISO 8601. Default: hace 30 días."),
     hasta: datetime | None = Query(default=None, description="ISO 8601. Default: ahora."),
+    edificio_id: UUID | None = Query(default=None, description="UUID del edificio. Opcional; si se omite devuelve todos."),
     db: Session = Depends(get_db),
     _: Usuario = Depends(
         require_roles(RolUsuario.ADMINISTRADOR_TI, RolUsuario.PERSONAL_TECNICO)
     ),
 ) -> MapaCalorResponse:
-    return generar_mapa_calor(db, desde=desde, hasta=hasta)
+    return generar_mapa_calor(db, desde=desde, hasta=hasta, edificio_id=edificio_id)

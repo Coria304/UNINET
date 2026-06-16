@@ -5,8 +5,10 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user, get_db
+from app.core.security import hash_password, verify_password
 from app.models import Usuario
 from app.schemas.auth import (
+    CambiarPasswordRequest,
     LoginRequest,
     LoginResponseMFA,
     LoginResponseToken,
@@ -104,6 +106,22 @@ def mfa_verify(payload: MFAVerifyRequest, request: Request, db: Session = Depend
 def me(current_user: Usuario = Depends(get_current_user)) -> Usuario:
     """Devuelve el usuario autenticado a partir del token."""
     return current_user
+
+
+@router.patch("/password", status_code=status.HTTP_204_NO_CONTENT)
+def cambiar_password(
+    payload: CambiarPasswordRequest,
+    current_user: Usuario = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> None:
+    """Cambia la contraseña del usuario autenticado."""
+    if not verify_password(payload.password_actual, current_user.password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="La contraseña actual es incorrecta.",
+        )
+    current_user.password_hash = hash_password(payload.password_nueva)
+    db.commit()
 
 
 @router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)

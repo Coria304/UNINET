@@ -66,6 +66,13 @@ export function useVerifyMfa() {
   });
 }
 
+export function useCambiarPassword() {
+  return useMutation({
+    mutationFn: (payload: { password_actual: string; password_nueva: string }) =>
+      authApi.cambiarPassword(payload),
+  });
+}
+
 export function useLogout() {
   const navigate = useNavigate();
   const logout = useAuthStore((s) => s.logout);

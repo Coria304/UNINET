@@ -36,7 +36,7 @@ function MisReportes() {
   const { data: edificios } = useEdificios();
   const lookup = buildUbicacionLookup(edificios);
 
-  if (isLoading) return <p className="text-slate-500">Cargando reportes…</p>;
+  if (isLoading) return <p className="text-[#787774]">Cargando reportes…</p>;
 
   return (
     <div className="space-y-4 max-w-4xl">
@@ -48,7 +48,7 @@ function MisReportes() {
       </header>
 
       {tickets && tickets.length === 0 && (
-        <div className="bg-white rounded-lg shadow p-6 text-center text-slate-500">
+        <div className="bg-white rounded-lg border border-[#EAEAEA] p-6 text-center text-[#787774]">
           Aún no has reportado ninguna falla.{" "}
           <Link to="/portal/reportar" className="text-brand-600 underline">
             Reporta la primera
@@ -62,7 +62,7 @@ function MisReportes() {
           <li key={t.id}>
             <Link
               to={`/portal/mis-reportes/${t.id}`}
-              className="block bg-white rounded-lg shadow p-4 hover:shadow-md hover:border-brand-200 border border-transparent transition"
+              className="block bg-white rounded-lg border border-[#EAEAEA] p-4 hover:border-[#111111] transition"
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1">
@@ -76,7 +76,7 @@ function MisReportes() {
                       {ESTADO_LABEL[t.estado]}
                     </span>
                   </div>
-                  <div className="text-sm text-slate-600">
+                  <div className="text-sm text-[#787774]">
                     Edificio{" "}
                     <strong>{lookup.edif.get(t.edificio_id) ?? "?"}</strong>
                     {t.aula_id && lookup.aulas.get(t.aula_id) && (
@@ -87,12 +87,12 @@ function MisReportes() {
                     )}
                   </div>
                   {t.descripcion && (
-                    <p className="text-sm text-slate-500 mt-1 line-clamp-2">
+                    <p className="text-sm text-[#787774] mt-1 line-clamp-2">
                       {t.descripcion}
                     </p>
                   )}
                 </div>
-                <div className="text-xs text-slate-400 whitespace-nowrap text-right">
+                <div className="text-xs text-[#AAAAAA] whitespace-nowrap text-right">
                   {formatFecha(t.created_at)}
                 </div>
               </div>

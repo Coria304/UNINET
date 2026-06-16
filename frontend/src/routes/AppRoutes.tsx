@@ -4,9 +4,13 @@ import { useHydrateSession } from "@/hooks/useAuth";
 import AdminLayout from "@/layouts/AdminLayout";
 import TecnicoLayout from "@/layouts/TecnicoLayout";
 import UsuarioLayout from "@/layouts/UsuarioLayout";
+import Alertas from "@/pages/admin/Alertas";
+import Usuarios from "@/pages/admin/Usuarios";
 import AdminInicio from "@/pages/admin/Inicio";
 import MapaCalor from "@/pages/admin/MapaCalor";
+import Monitoreo from "@/pages/admin/Monitoreo";
 import Reportes from "@/pages/admin/Reportes";
+import AdminTicketDetail from "@/pages/admin/TicketDetail";
 import TicketsAdmin from "@/pages/admin/TicketsAdmin";
 import Login from "@/pages/Login";
 import NotFound from "@/pages/NotFound";
@@ -57,8 +61,12 @@ function AppRoutes() {
       >
         <Route index element={<AdminInicio />} />
         <Route path="tickets" element={<TicketsAdmin />} />
+        <Route path="tickets/:ticketId" element={<AdminTicketDetail />} />
         <Route path="reportes" element={<Reportes />} />
         <Route path="mapa-calor" element={<MapaCalor />} />
+        <Route path="monitoreo" element={<Monitoreo />} />
+        <Route path="alertas" element={<Alertas />} />
+        <Route path="usuarios" element={<Usuarios />} />
       </Route>
 
       <Route

@@ -10,6 +10,7 @@ export interface ResumenFilters {
 export interface MapaCalorFilters {
   desde?: string;
   hasta?: string;
+  edificio_id?: string;
 }
 
 export const reportesApi = {

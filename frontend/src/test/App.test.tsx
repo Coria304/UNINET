@@ -21,8 +21,10 @@ const renderApp = () => {
 describe("App", () => {
   it("redirige a /login cuando no hay sesión", () => {
     renderApp();
+    // El formulario de login debe estar visible.
     expect(
-      screen.getByRole("heading", { name: /UniNet Connect/i }),
+      screen.getByRole("heading", { name: /Iniciar sesión/i }),
     ).toBeInTheDocument();
+    expect(screen.getByLabelText(/Correo institucional/i)).toBeInTheDocument();
   });
 });

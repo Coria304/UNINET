@@ -4,8 +4,10 @@ from fastapi import APIRouter
 
 from app.api.v1.routes import (
     admin,
+    alertas,
     auth,
     health,
+    monitoreo,
     notificaciones,
     reportes,
     speedtest,
@@ -22,3 +24,5 @@ api_router.include_router(tickets.router)
 api_router.include_router(notificaciones.router)
 api_router.include_router(reportes.router)
 api_router.include_router(speedtest.router)
+api_router.include_router(monitoreo.router)
+api_router.include_router(alertas.router)

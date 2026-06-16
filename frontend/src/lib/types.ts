@@ -14,6 +14,13 @@ export interface Usuario {
   last_login_at?: string | null;
 }
 
+export interface UsuarioCreate {
+  correo: string;
+  nombre_completo: string;
+  password: string;
+  rol: "personal_tecnico" | "estudiante" | "docente";
+}
+
 export interface AuthTokens {
   access_token: string;
   token_type: "bearer";
