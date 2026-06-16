@@ -86,9 +86,9 @@ EDIFICIOS_ESCOM: list[dict[str, Any]] = [
     {
         "codigo": "ED1",
         "nombre": "Edificio 1",
-        "descripcion": "Salones y laboratorios — lado este, sur del edif. de laboratorios.",
-        "latitud": 19.5042,
-        "longitud": -99.1461,
+        "descripcion": "Salones y laboratorios — lado este, norte del campus.",
+        "latitud": 19.5048,
+        "longitud": -99.1462,
         "pisos": [
             {
                 "numero": 0,
@@ -118,9 +118,9 @@ EDIFICIOS_ESCOM: list[dict[str, Any]] = [
     {
         "codigo": "ED2",
         "nombre": "Edificio 2",
-        "descripcion": "Salones, posgrado y laboratorios — lado oeste, sur del edif. de laboratorios.",
-        "latitud": 19.5042,
-        "longitud": -99.1467,
+        "descripcion": "Salones, posgrado y laboratorios — lado oeste, norte del campus.",
+        "latitud": 19.5047,
+        "longitud": -99.1468,
         "pisos": [
             {
                 "numero": 0,
@@ -149,9 +149,9 @@ EDIFICIOS_ESCOM: list[dict[str, Any]] = [
     {
         "codigo": "ED3",
         "nombre": "Edificio 3",
-        "descripcion": "Salones — lado este, norte del edif. de laboratorios.",
-        "latitud": 19.5048,
-        "longitud": -99.1461,
+        "descripcion": "Salones — lado este, centro del campus.",
+        "latitud": 19.5044,
+        "longitud": -99.1463,
         "pisos": [
             {"numero": 0, "nombre": "Planta Baja", "aulas": aulas(30, 8, 13, tipo="aula")},
             {"numero": 1, "nombre": "Primer Piso", "aulas": aulas(31, 8, 13, tipo="aula")},
@@ -161,9 +161,9 @@ EDIFICIOS_ESCOM: list[dict[str, Any]] = [
     {
         "codigo": "ED4",
         "nombre": "Edificio 4",
-        "descripcion": "Salones — lado oeste, norte del edif. de laboratorios.",
-        "latitud": 19.5048,
-        "longitud": -99.1467,
+        "descripcion": "Salones — lado oeste, centro del campus.",
+        "latitud": 19.5041,
+        "longitud": -99.1468,
         "pisos": [
             {"numero": 0, "nombre": "Planta Baja", "aulas": aulas(40, 8, 13, tipo="aula")},
             {"numero": 1, "nombre": "Primer Piso", "aulas": aulas(41, 8, 13, tipo="aula")},
@@ -174,11 +174,12 @@ EDIFICIOS_ESCOM: list[dict[str, Any]] = [
         "codigo": "LABS",
         "nombre": "Edificio de Laboratorios",
         "descripcion": (
-            "Edificio central. La nomenclatura comparte prefijos con los edificios "
-            "3 y 4 según el lado: lado derecho usa 3xxx, lado izquierdo usa 4xxx."
+            "Edificio central de laboratorios, zona sur del campus. "
+            "La nomenclatura comparte prefijos con los edificios 3 y 4 "
+            "según el lado: lado derecho usa 3xxx, lado izquierdo usa 4xxx."
         ),
-        "latitud": 19.5045,
-        "longitud": -99.1464,
+        "latitud": 19.5038,
+        "longitud": -99.1465,
         "pisos": [
             {
                 "numero": 0,
@@ -211,9 +212,9 @@ EDIFICIOS_ESCOM: list[dict[str, Any]] = [
     {
         "codigo": "GOB",
         "nombre": "Edificio de Gobierno",
-        "descripcion": "Personal administrativo, biblioteca y auditorio. Al sur del campus.",
-        "latitud": 19.5036,
-        "longitud": -99.1464,
+        "descripcion": "Personal administrativo y gestión escolar. Al norte del campus, junto al acceso principal.",
+        "latitud": 19.5051,
+        "longitud": -99.1469,
         "pisos": [
             {
                 "numero": 0,

@@ -16,7 +16,7 @@ const RANGOS: Rango[] = [
   { label: "Últimos 90 días", days: 90 },
 ];
 
-const FALLBACK_CENTER: [number, number] = [19.5042, -99.1464];
+const FALLBACK_CENTER: [number, number] = [19.5045, -99.1465];
 
 function isoHaceDias(dias: number): string {
   return new Date(Date.now() - dias * 24 * 3600 * 1000).toISOString();

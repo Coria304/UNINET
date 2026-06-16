@@ -10,7 +10,7 @@ import { TIPO_FALLA_LABEL, formatAulaLabel } from "@/lib/types";
 
 // Centroide aproximado de ESCOM-IPN (Zacatenco). Se usa si los edificios
 // del seed no traen coordenadas; los seedeados sí las traen.
-const FALLBACK_CENTER: [number, number] = [19.5046, -99.1467];
+const FALLBACK_CENTER: [number, number] = [19.5045, -99.1465];
 
 function centroideDe(edificios: Edificio[]): [number, number] {
   const conCoords = edificios.filter(
