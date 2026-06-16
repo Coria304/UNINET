@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 
 import { useResumenReporte } from "@/hooks/useReportes";
+import { api } from "@/lib/api";
 import type { PuntoSerieTemporal, ResumenReporte } from "@/lib/types";
 import { TIPO_FALLA_LABEL } from "@/lib/types";
 
@@ -196,6 +197,7 @@ function Resumen({ data }: { data: ResumenReporte }) {
 
 function Reportes() {
   const [rangoIdx, setRangoIdx] = useState(1); // default: 30 días
+  const [descargando, setDescargando] = useState(false);
   const rango = RANGOS[rangoIdx];
 
   const filters = useMemo(
@@ -208,6 +210,24 @@ function Reportes() {
 
   const { data, isLoading, isError } = useResumenReporte(filters);
 
+  async function descargarPdf() {
+    setDescargando(true);
+    try {
+      const r = await api.get("/reportes/pdf", {
+        params: filters,
+        responseType: "blob",
+      });
+      const url = URL.createObjectURL(r.data as Blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `reporte-uninet-${new Date().toISOString().slice(0, 10)}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } finally {
+      setDescargando(false);
+    }
+  }
+
   return (
     <div className="space-y-5 max-w-6xl">
       <header className="flex items-center justify-between gap-4">
@@ -217,21 +237,31 @@ function Reportes() {
             Métricas agregadas del sistema de tickets.
           </p>
         </div>
-        <div className="flex gap-1 bg-white border border-slate-200 rounded-lg p-0.5">
-          {RANGOS.map((r, i) => (
-            <button
-              key={r.label}
-              type="button"
-              onClick={() => setRangoIdx(i)}
-              className={`px-3 py-1.5 text-sm rounded ${
-                i === rangoIdx
-                  ? "bg-brand-500 text-white"
-                  : "text-slate-600 hover:bg-slate-100"
-              }`}
-            >
-              {r.label}
-            </button>
-          ))}
+        <div className="flex items-center gap-3">
+          <div className="flex gap-1 bg-white border border-slate-200 rounded-lg p-0.5">
+            {RANGOS.map((r, i) => (
+              <button
+                key={r.label}
+                type="button"
+                onClick={() => setRangoIdx(i)}
+                className={`px-3 py-1.5 text-sm rounded ${
+                  i === rangoIdx
+                    ? "bg-brand-500 text-white"
+                    : "text-slate-600 hover:bg-slate-100"
+                }`}
+              >
+                {r.label}
+              </button>
+            ))}
+          </div>
+          <button
+            type="button"
+            onClick={descargarPdf}
+            disabled={descargando || !data}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-sm rounded border border-slate-300 bg-white hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {descargando ? "Generando…" : "↓ PDF"}
+          </button>
         </div>
       </header>
 

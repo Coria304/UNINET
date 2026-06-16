@@ -25,6 +25,9 @@ cryptography==44.0.0
 # --- Cache / colas (Sprint 3+) ---
 redis==5.2.1
 
+# --- Generación de PDF (RF010) ---
+fpdf2==2.8.3
+
 # --- Utilidades ---
 python-dotenv==1.0.1
 httpx==0.28.1
