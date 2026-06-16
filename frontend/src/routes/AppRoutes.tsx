@@ -5,6 +5,7 @@ import AdminLayout from "@/layouts/AdminLayout";
 import TecnicoLayout from "@/layouts/TecnicoLayout";
 import UsuarioLayout from "@/layouts/UsuarioLayout";
 import AdminInicio from "@/pages/admin/Inicio";
+import MapaCalor from "@/pages/admin/MapaCalor";
 import Reportes from "@/pages/admin/Reportes";
 import TicketsAdmin from "@/pages/admin/TicketsAdmin";
 import Login from "@/pages/Login";
@@ -56,6 +57,7 @@ function AppRoutes() {
         <Route index element={<AdminInicio />} />
         <Route path="tickets" element={<TicketsAdmin />} />
         <Route path="reportes" element={<Reportes />} />
+        <Route path="mapa-calor" element={<MapaCalor />} />
       </Route>
 
       <Route

@@ -18,6 +18,8 @@ from app.schemas.reportes import (
     BucketEdificio,
     BucketTipoFalla,
     ContadorPorEstado,
+    MapaCalorResponse,
+    PuntoMapaCalor,
     PuntoSerieTemporal,
     ResumenReporte,
 )
@@ -159,4 +161,60 @@ def generar_resumen(
         top_tipos=top_tipos,
         serie_temporal=serie_temporal,
         granularidad=granularidad,
+    )
+
+
+def generar_mapa_calor(
+    db: Session,
+    *,
+    desde: datetime | None = None,
+    hasta: datetime | None = None,
+) -> MapaCalorResponse:
+    """Densidad de tickets por edificio para el heatmap (RF003).
+
+    Devuelve solo edificios con coordenadas geográficas — un edificio sin
+    lat/lon no puede dibujarse en el mapa, así que lo omitimos. El campo
+    `total` se usa como "peso" para la intensidad del calor.
+    """
+    desde, hasta = _normalizar_rango(desde, hasta)
+
+    rows = db.execute(
+        select(
+            Edificio.id,
+            Edificio.codigo,
+            Edificio.nombre,
+            Edificio.latitud,
+            Edificio.longitud,
+            func.count(Ticket.id).label("total"),
+        )
+        .join(Ticket, Ticket.edificio_id == Edificio.id)
+        .where(
+            Ticket.created_at >= desde,
+            Ticket.created_at <= hasta,
+            Edificio.latitud.isnot(None),
+            Edificio.longitud.isnot(None),
+        )
+        .group_by(
+            Edificio.id, Edificio.codigo, Edificio.nombre, Edificio.latitud, Edificio.longitud
+        )
+        .order_by(desc("total"))
+    ).all()
+
+    puntos = [
+        PuntoMapaCalor(
+            edificio_id=r[0],
+            codigo=r[1],
+            nombre=r[2],
+            latitud=float(r[3]),
+            longitud=float(r[4]),
+            total=r[5],
+        )
+        for r in rows
+    ]
+
+    return MapaCalorResponse(
+        desde=desde,
+        hasta=hasta,
+        puntos=puntos,
+        total=sum(p.total for p in puntos),
     )

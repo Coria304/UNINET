@@ -54,6 +54,24 @@ class ResumenReporte(BaseModel):
     granularidad: str  # "day" | "week" | "month"
 
 
+class PuntoMapaCalor(BaseModel):
+    """Punto de densidad para el heatmap (RF003)."""
+
+    edificio_id: UUID
+    codigo: str
+    nombre: str
+    latitud: float
+    longitud: float
+    total: int
+
+
+class MapaCalorResponse(BaseModel):
+    desde: datetime
+    hasta: datetime
+    puntos: list[PuntoMapaCalor]
+    total: int
+
+
 class FiltroRango(BaseModel):
     """No se valida en endpoint; documenta los parámetros aceptados."""
 

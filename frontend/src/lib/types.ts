@@ -141,6 +141,22 @@ export interface PuntoSerieTemporal {
   total: number;
 }
 
+export interface PuntoMapaCalor {
+  edificio_id: string;
+  codigo: string;
+  nombre: string;
+  latitud: number;
+  longitud: number;
+  total: number;
+}
+
+export interface MapaCalorResponse {
+  desde: string;
+  hasta: string;
+  puntos: PuntoMapaCalor[];
+  total: number;
+}
+
 export interface ResumenReporte {
   desde: string;
   hasta: string;

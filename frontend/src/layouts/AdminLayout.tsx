@@ -8,6 +8,7 @@ const NAV = [
   { to: "/admin", label: "Dashboard", end: true },
   { to: "/admin/tickets", label: "Tickets" },
   { to: "/admin/reportes", label: "Reportes SLA" },
+  { to: "/admin/mapa-calor", label: "Mapa de calor" },
 ];
 
 function navClass({ isActive }: { isActive: boolean }) {
