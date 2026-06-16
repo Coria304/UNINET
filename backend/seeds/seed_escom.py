@@ -87,8 +87,8 @@ EDIFICIOS_ESCOM: list[dict[str, Any]] = [
         "codigo": "ED1",
         "nombre": "Edificio 1",
         "descripcion": "Salones y laboratorios — lado este, norte del campus.",
-        "latitud": 19.5048,
-        "longitud": -99.1462,
+        "latitud": 19.505032,
+        "longitud": -99.147067,
         "pisos": [
             {
                 "numero": 0,
@@ -119,8 +119,8 @@ EDIFICIOS_ESCOM: list[dict[str, Any]] = [
         "codigo": "ED2",
         "nombre": "Edificio 2",
         "descripcion": "Salones, posgrado y laboratorios — lado oeste, norte del campus.",
-        "latitud": 19.5047,
-        "longitud": -99.1468,
+        "latitud": 19.504788,
+        "longitud": -99.146396,
         "pisos": [
             {
                 "numero": 0,
@@ -150,8 +150,8 @@ EDIFICIOS_ESCOM: list[dict[str, Any]] = [
         "codigo": "ED3",
         "nombre": "Edificio 3",
         "descripcion": "Salones — lado este, centro del campus.",
-        "latitud": 19.5044,
-        "longitud": -99.1463,
+        "latitud": 19.504473,
+        "longitud": -99.147049,
         "pisos": [
             {"numero": 0, "nombre": "Planta Baja", "aulas": aulas(30, 8, 13, tipo="aula")},
             {"numero": 1, "nombre": "Primer Piso", "aulas": aulas(31, 8, 13, tipo="aula")},
@@ -162,8 +162,8 @@ EDIFICIOS_ESCOM: list[dict[str, Any]] = [
         "codigo": "ED4",
         "nombre": "Edificio 4",
         "descripcion": "Salones — lado oeste, centro del campus.",
-        "latitud": 19.5041,
-        "longitud": -99.1468,
+        "latitud": 19.504379,
+        "longitud": -99.146859,
         "pisos": [
             {"numero": 0, "nombre": "Planta Baja", "aulas": aulas(40, 8, 13, tipo="aula")},
             {"numero": 1, "nombre": "Primer Piso", "aulas": aulas(41, 8, 13, tipo="aula")},
@@ -178,8 +178,8 @@ EDIFICIOS_ESCOM: list[dict[str, Any]] = [
             "La nomenclatura comparte prefijos con los edificios 3 y 4 "
             "según el lado: lado derecho usa 3xxx, lado izquierdo usa 4xxx."
         ),
-        "latitud": 19.5038,
-        "longitud": -99.1465,
+        "latitud": 19.504691,
+        "longitud": -99.146830,
         "pisos": [
             {
                 "numero": 0,
@@ -213,8 +213,8 @@ EDIFICIOS_ESCOM: list[dict[str, Any]] = [
         "codigo": "GOB",
         "nombre": "Edificio de Gobierno",
         "descripcion": "Personal administrativo y gestión escolar. Al norte del campus, junto al acceso principal.",
-        "latitud": 19.5051,
-        "longitud": -99.1469,
+        "latitud": 19.505226,
+        "longitud": -99.146567,
         "pisos": [
             {
                 "numero": 0,
