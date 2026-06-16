@@ -46,13 +46,13 @@ function Card({
   subtitle?: string;
 }) {
   return (
-    <div className="bg-white rounded-lg shadow p-4">
-      <div className="text-xs text-slate-500 uppercase tracking-wide">
+    <div className="card p-4">
+      <div className="text-xs text-[#787774] uppercase tracking-wide">
         {label}
       </div>
-      <div className={`text-2xl font-semibold mt-1 ${color}`}>{value}</div>
+      <div className={`text-2xl font-semibold tabular-nums mt-1 ${color}`}>{value}</div>
       {subtitle && (
-        <div className="text-xs text-slate-400 mt-0.5">{subtitle}</div>
+        <div className="text-xs text-[#AAAAAA] mt-0.5">{subtitle}</div>
       )}
     </div>
   );
@@ -137,27 +137,24 @@ function Resumen({ data }: { data: ResumenReporte }) {
       </section>
 
       {data.total > 0 && (
-        <div className="text-sm text-slate-500">
-          Tasa de resolución: <strong>{tasaResolucion}%</strong>
+        <div className="text-sm text-[#787774]">
+          Tasa de resolución: <strong className="text-[#111111]">{tasaResolucion}%</strong>
         </div>
       )}
 
       <section className="grid lg:grid-cols-2 gap-4">
-        <div className="bg-white rounded-lg shadow p-5">
-          <h3 className="font-semibold mb-3">Top edificios con más reportes</h3>
+        <div className="card p-5">
+          <h3 className="font-semibold mb-3 text-sm text-[#111111]">Top edificios con más reportes</h3>
           {data.top_edificios.length === 0 ? (
-            <p className="text-sm text-slate-500">Sin datos en el rango.</p>
+            <p className="text-sm text-[#AAAAAA]">Sin datos en el rango.</p>
           ) : (
             <table className="w-full text-sm">
               <tbody>
                 {data.top_edificios.map((b) => (
-                  <tr
-                    key={b.edificio_id}
-                    className="border-b border-slate-100 last:border-0"
-                  >
+                  <tr key={b.edificio_id} className="border-b border-[#EAEAEA] last:border-0">
                     <td className="py-2 font-medium">{b.codigo}</td>
-                    <td className="py-2 text-slate-500">{b.nombre}</td>
-                    <td className="py-2 text-right tabular-nums">{b.total}</td>
+                    <td className="py-2 text-[#787774]">{b.nombre}</td>
+                    <td className="py-2 text-right tabular-nums font-medium">{b.total}</td>
                   </tr>
                 ))}
               </tbody>
@@ -165,20 +162,17 @@ function Resumen({ data }: { data: ResumenReporte }) {
           )}
         </div>
 
-        <div className="bg-white rounded-lg shadow p-5">
-          <h3 className="font-semibold mb-3">Tipos de falla</h3>
+        <div className="card p-5">
+          <h3 className="font-semibold mb-3 text-sm text-[#111111]">Tipos de falla</h3>
           {data.top_tipos.length === 0 ? (
-            <p className="text-sm text-slate-500">Sin datos en el rango.</p>
+            <p className="text-sm text-[#AAAAAA]">Sin datos en el rango.</p>
           ) : (
             <table className="w-full text-sm">
               <tbody>
                 {data.top_tipos.map((b) => (
-                  <tr
-                    key={b.tipo}
-                    className="border-b border-slate-100 last:border-0"
-                  >
-                    <td className="py-2">{TIPO_FALLA_LABEL[b.tipo]}</td>
-                    <td className="py-2 text-right tabular-nums">{b.total}</td>
+                  <tr key={b.tipo} className="border-b border-[#EAEAEA] last:border-0">
+                    <td className="py-2 text-[#787774]">{TIPO_FALLA_LABEL[b.tipo]}</td>
+                    <td className="py-2 text-right tabular-nums font-medium">{b.total}</td>
                   </tr>
                 ))}
               </tbody>
@@ -187,8 +181,10 @@ function Resumen({ data }: { data: ResumenReporte }) {
         </div>
       </section>
 
-      <section className="bg-white rounded-lg shadow p-5">
-        <h3 className="font-semibold mb-3">Tickets por {data.granularidad === "month" ? "mes" : data.granularidad === "week" ? "semana" : "día"}</h3>
+      <section className="card p-5">
+        <h3 className="font-semibold mb-3 text-sm text-[#111111]">
+          Tickets por {data.granularidad === "month" ? "mes" : data.granularidad === "week" ? "semana" : "día"}
+        </h3>
         <SerieTemporal puntos={data.serie_temporal} granularidad={data.granularidad} />
       </section>
     </>
@@ -258,9 +254,9 @@ function Reportes() {
             type="button"
             onClick={descargarPdf}
             disabled={descargando || !data}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-sm rounded border border-slate-300 bg-white hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="btn-secondary text-xs px-3 py-1.5"
           >
-            {descargando ? "Generando…" : "↓ PDF"}
+            {descargando ? "Generando…" : "Descargar PDF"}
           </button>
         </div>
       </header>

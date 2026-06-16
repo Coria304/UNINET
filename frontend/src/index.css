@@ -8,16 +8,64 @@
   #root {
     height: 100%;
   }
+
   body {
-    @apply font-sans antialiased text-slate-900;
+    @apply font-sans antialiased;
+    background-color: #F7F6F3;
+    color: #111111;
+    line-height: 1.6;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+  }
+
+  /* Tabular nums para datos numéricos */
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
   }
 }
 
 @layer components {
+  /* Botón primario — sólido oscuro, sin sombra */
   .btn-primary {
-    @apply inline-flex items-center justify-center rounded-md bg-brand-500 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:opacity-50;
+    @apply inline-flex items-center justify-center rounded px-4 py-2 text-sm font-medium
+           bg-[#111111] text-white border border-[#111111]
+           transition-all duration-200
+           hover:bg-[#2A2A2A] hover:border-[#2A2A2A]
+           active:scale-[0.98]
+           focus:outline-none focus-visible:ring-2 focus-visible:ring-[#111111] focus-visible:ring-offset-2
+           disabled:opacity-40 disabled:cursor-not-allowed;
   }
+
+  /* Botón secundario — borde, sin relleno */
+  .btn-secondary {
+    @apply inline-flex items-center justify-center rounded px-4 py-2 text-sm font-medium
+           bg-white text-[#111111] border border-[#EAEAEA]
+           transition-all duration-200
+           hover:bg-[#F4F3F0] hover:border-[#D0D0D0]
+           active:scale-[0.98]
+           focus:outline-none focus-visible:ring-2 focus-visible:ring-[#111111] focus-visible:ring-offset-2
+           disabled:opacity-40 disabled:cursor-not-allowed;
+  }
+
+  /* Input base */
   .input-base {
-    @apply block w-full rounded-md border-slate-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm;
+    @apply block w-full rounded border border-[#EAEAEA] bg-white px-3 py-2 text-sm text-[#111111]
+           placeholder:text-[#AAAAAA]
+           transition-colors duration-150
+           focus:outline-none focus:border-[#111111] focus:ring-1 focus:ring-[#111111]
+           disabled:bg-[#F4F3F0] disabled:text-[#AAAAAA];
+  }
+
+  /* Card base — sin sombra, solo borde */
+  .card {
+    @apply bg-white border border-[#EAEAEA] rounded-lg;
+  }
+
+  /* Badge de estado */
+  .badge {
+    @apply inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium tracking-wide uppercase;
   }
 }
