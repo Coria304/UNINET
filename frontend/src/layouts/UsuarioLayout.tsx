@@ -8,6 +8,7 @@ const NAV = [
   { to: "/portal", label: "Inicio", end: true },
   { to: "/portal/reportar", label: "Reportar falla" },
   { to: "/portal/mis-reportes", label: "Mis reportes" },
+  { to: "/portal/speedtest", label: "Speedtest" },
 ];
 
 function navClass({ isActive }: { isActive: boolean }) {

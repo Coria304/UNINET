@@ -8,6 +8,7 @@ from app.api.v1.routes import (
     health,
     notificaciones,
     reportes,
+    speedtest,
     tickets,
     ubicaciones,
 )
@@ -20,3 +21,4 @@ api_router.include_router(ubicaciones.router)
 api_router.include_router(tickets.router)
 api_router.include_router(notificaciones.router)
 api_router.include_router(reportes.router)
+api_router.include_router(speedtest.router)

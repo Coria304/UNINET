@@ -14,6 +14,7 @@ import MiReporteDetalle from "@/pages/portal/MiReporteDetalle";
 import PortalInicio from "@/pages/portal/Inicio";
 import MisReportes from "@/pages/portal/MisReportes";
 import ReportarFalla from "@/pages/portal/ReportarFalla";
+import Speedtest from "@/pages/portal/Speedtest";
 import TecnicoInicio from "@/pages/tecnico/Inicio";
 import TicketDetail from "@/pages/tecnico/TicketDetail";
 import TicketsList from "@/pages/tecnico/TicketsList";
@@ -85,6 +86,7 @@ function AppRoutes() {
         <Route path="reportar" element={<ReportarFalla />} />
         <Route path="mis-reportes" element={<MisReportes />} />
         <Route path="mis-reportes/:ticketId" element={<MiReporteDetalle />} />
+        <Route path="speedtest" element={<Speedtest />} />
       </Route>
 
       <Route path="/" element={<RoleRedirect />} />
