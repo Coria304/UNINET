@@ -150,8 +150,8 @@ EDIFICIOS_ESCOM: list[dict[str, Any]] = [
         "codigo": "ED3",
         "nombre": "Edificio 3",
         "descripcion": "Salones — lado este, centro del campus.",
-        "latitud": 19.504473,
-        "longitud": -99.147049,
+        "latitud": 19.504119,
+        "longitud": -99.147208,
         "pisos": [
             {"numero": 0, "nombre": "Planta Baja", "aulas": aulas(30, 8, 13, tipo="aula")},
             {"numero": 1, "nombre": "Primer Piso", "aulas": aulas(31, 8, 13, tipo="aula")},
@@ -162,8 +162,8 @@ EDIFICIOS_ESCOM: list[dict[str, Any]] = [
         "codigo": "ED4",
         "nombre": "Edificio 4",
         "descripcion": "Salones — lado oeste, centro del campus.",
-        "latitud": 19.504379,
-        "longitud": -99.146859,
+        "latitud": 19.504087,
+        "longitud": -99.147075,
         "pisos": [
             {"numero": 0, "nombre": "Planta Baja", "aulas": aulas(40, 8, 13, tipo="aula")},
             {"numero": 1, "nombre": "Primer Piso", "aulas": aulas(41, 8, 13, tipo="aula")},
@@ -226,6 +226,22 @@ EDIFICIOS_ESCOM: list[dict[str, Any]] = [
                 ],
             },
         ],
+    },
+    {
+        "codigo": "PAL-GOB",
+        "nombre": "Palapas de Gestión",
+        "descripcion": "Área de palapas junto a Gestión Escolar.",
+        "latitud": 19.505561,
+        "longitud": -99.146849,
+        "pisos": [],
+    },
+    {
+        "codigo": "PAL-IA",
+        "nombre": "Palapas de IA",
+        "descripcion": "Área de palapas zona sur del campus.",
+        "latitud": 19.503650,
+        "longitud": -99.146527,
+        "pisos": [],
     },
 ]
 
