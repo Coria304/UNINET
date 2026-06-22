@@ -29,7 +29,10 @@ class Settings(BaseSettings):
     DATABASE_URL: PostgresDsn
     REDIS_URL: str = "redis://localhost:6379/0"
 
-    CORS_ORIGINS: list[str] = ["http://localhost:5173"]
+    CORS_ORIGINS: list[str] = [
+        "http://localhost:5173",
+        "http://localhost:4173",
+    ]
 
     # SMTP opcional para notificaciones por correo (RF005). Si SMTP_HOST
     # está vacío, las notificaciones se entregan sólo in-app y el correo
