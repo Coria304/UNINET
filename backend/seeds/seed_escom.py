@@ -42,7 +42,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(me
 # --- Usuarios demo ----------------------------------------------------------
 USUARIOS_SEMILLA = [
     {
-        "correo": "axel.coria304@gmail.com",
+        "correo": "alosaurio777@gmail.com",
         "nombre_completo": "Administrador TI Demo",
         "password": "admin1234",
         "rol": RolUsuario.ADMINISTRADOR_TI,
