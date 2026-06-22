@@ -67,10 +67,20 @@ _ENUM_DEFINITIONS: list[tuple[str, tuple[str, ...]]] = [
 
 
 def upgrade() -> None:
-    # Extensiones (idempotentes; init.sql también las crea, pero esto cubre entornos limpios).
+    # Verificar si TimescaleDB está disponible (no lo está en Railway ni en Postgres estándar).
+    bind = op.get_bind()
+    result = bind.execute(
+        sa.text(
+            "SELECT EXISTS (SELECT 1 FROM pg_available_extensions WHERE name = 'timescaledb')"
+        )
+    )
+    _has_timescale: bool = bool(result.scalar())
+
+    # Extensiones estándar
     op.execute("CREATE EXTENSION IF NOT EXISTS pgcrypto")
     op.execute("CREATE EXTENSION IF NOT EXISTS citext")
-    op.execute("CREATE EXTENSION IF NOT EXISTS timescaledb")
+    if _has_timescale:
+        op.execute("CREATE EXTENSION IF NOT EXISTS timescaledb")
 
     for name, values in _ENUM_DEFINITIONS:
         values_sql = ", ".join(f"'{v}'" for v in values)
@@ -324,11 +334,12 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("ts", "access_point_id", name="pk_metricas_monitoreo"),
     )
     op.create_index("ix_metricas_monitoreo_ts", "metricas_monitoreo", ["ts"])
-    # Particiona por tiempo cada 7 días.
-    op.execute(
-        "SELECT create_hypertable('metricas_monitoreo', 'ts', "
-        "chunk_time_interval => INTERVAL '7 days', if_not_exists => TRUE);"
-    )
+    # Particiona por tiempo solo si TimescaleDB está instalado.
+    if _has_timescale:
+        op.execute(
+            "SELECT create_hypertable('metricas_monitoreo', 'ts', "
+            "chunk_time_interval => INTERVAL '7 days', if_not_exists => TRUE);"
+        )
 
 
 def downgrade() -> None:
