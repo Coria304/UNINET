@@ -14,7 +14,9 @@ from __future__ import annotations
 import json
 import logging
 import secrets
+import smtplib
 from dataclasses import dataclass
+from email.mime.text import MIMEText
 from uuid import UUID, uuid4
 
 from app.core.config import get_settings
@@ -54,9 +56,8 @@ def issue_challenge(usuario_id: UUID, correo: str) -> MFAChallenge:
     )
 
     settings = get_settings()
-    if settings.is_production:
-        # TODO Sprint 5: enviar correo institucional vía SMTP.
-        logger.info("Reto MFA emitido para %s (correo enviado).", correo)
+    if settings.smtp_enabled:
+        _send_mfa_email(correo, challenge.code, settings)
     else:
         logger.warning(
             "[DEV] Reto MFA para %s — código=%s (challenge_id=%s)",
@@ -66,6 +67,29 @@ def issue_challenge(usuario_id: UUID, correo: str) -> MFAChallenge:
         )
 
     return challenge
+
+
+def _send_mfa_email(correo: str, code: str, settings) -> None:
+    body = (
+        f"Tu código de verificación para UniNet Connect es:\n\n"
+        f"    {code}\n\n"
+        f"Expira en 5 minutos. Si no solicitaste este código, ignora este mensaje."
+    )
+    msg = MIMEText(body, "plain", "utf-8")
+    msg["Subject"] = f"Tu código de acceso UniNet: {code}"
+    msg["From"] = settings.SMTP_FROM
+    msg["To"] = correo
+
+    try:
+        with smtplib.SMTP(settings.SMTP_HOST, settings.SMTP_PORT, timeout=10) as server:
+            if settings.SMTP_USE_TLS:
+                server.starttls()
+            if settings.SMTP_USERNAME and settings.SMTP_PASSWORD:
+                server.login(settings.SMTP_USERNAME, settings.SMTP_PASSWORD)
+            server.sendmail(settings.SMTP_FROM, [correo], msg.as_string())
+        logger.info("Código MFA enviado a %s", correo)
+    except Exception as exc:
+        logger.error("Error enviando MFA a %s: %s", correo, exc)
 
 
 def verify_challenge(challenge_id: UUID, code: str) -> UUID | None:
