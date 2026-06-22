@@ -42,7 +42,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(me
 # --- Usuarios demo ----------------------------------------------------------
 USUARIOS_SEMILLA = [
     {
-        "correo": "admin.ti@escom.ipn.mx",
+        "correo": "axel.coria304@gmail.com",
         "nombre_completo": "Administrador TI Demo",
         "password": "admin1234",
         "rol": RolUsuario.ADMINISTRADOR_TI,
@@ -249,9 +249,18 @@ EDIFICIOS_ESCOM: list[dict[str, Any]] = [
 # --- Implementación del seed ------------------------------------------------
 def _seed_usuarios(session) -> None:
     for datos in USUARIOS_SEMILLA:
-        existe = session.scalar(select(Usuario).where(Usuario.correo == datos["correo"]))
-        if existe:
-            continue
+        # Para el admin buscamos por rol (permite actualizar correo en re-seed).
+        if datos["rol"] == RolUsuario.ADMINISTRADOR_TI:
+            existe = session.scalar(select(Usuario).where(Usuario.rol == RolUsuario.ADMINISTRADOR_TI))
+            if existe:
+                if existe.correo != datos["correo"]:
+                    existe.correo = datos["correo"]
+                    logger.info("Admin actualizado: correo → %s", datos["correo"])
+                continue
+        else:
+            existe = session.scalar(select(Usuario).where(Usuario.correo == datos["correo"]))
+            if existe:
+                continue
         session.add(
             Usuario(
                 correo=datos["correo"],
