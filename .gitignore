@@ -28,6 +28,9 @@ yarn-error.log*
 .vscode/
 .idea/
 .claude/
+.agents/
+.github/skills/
+skills-lock.json
 .DS_Store
 Thumbs.db
 *.swp
